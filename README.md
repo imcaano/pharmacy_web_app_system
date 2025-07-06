@@ -1,6 +1,95 @@
 # Pharmacy Web Application System
 
-A modern web-based pharmacy management system with blockchain integration for prescription security.
+## Project Overview
+
+Pharmacy Web Application System is a modern, web-based platform for managing pharmacies, medicines, prescriptions, and orders. It supports multiple user roles (Admin, Pharmacy, Customer) and integrates blockchain technology (using Hardhat and Ethereum) to ensure security and auditability for key actions like registration and prescription uploads.
+
+- **Backend:** PHP & MySQL
+- **Frontend:** HTML5, CSS3, JavaScript, Bootstrap 5
+- **Blockchain:** Hardhat (local Ethereum), MetaMask, Ethers.js
+
+### User Roles
+- **Admin:** Manages all pharmacies, medicines, users, and orders.
+- **Pharmacy:** Manages their own medicines and orders.
+- **Customer:** Browses medicines, uploads prescriptions, and places orders.
+
+### Key Features
+- Medicine inventory management
+- Order and prescription management
+- Blockchain-backed verification for critical actions
+- Modern, responsive UI
+
+---
+
+## How Blockchain (Hardhat) Works in This Project
+
+- The project uses a smart contract (PharmaRegistry) deployed on a local Hardhat Ethereum blockchain.
+- When users, pharmacies, medicines, or prescriptions are registered/uploaded, the frontend JS hashes the data and sends it to the smart contract via MetaMask.
+- The contract stores the hash and emits an event. The transaction hash and data hash are also saved in MySQL for future verification.
+- This ensures that your database records can always be verified against the blockchain, providing tamper-proof auditability.
+
+**Example Flow:**
+1. User registers or uploads a prescription.
+2. Frontend JS hashes the data and calls the smart contract (via MetaMask).
+3. The contract emits an event and stores the hash.
+4. The transaction hash and data hash are sent to the PHP backend and saved in MySQL.
+5. You can later verify that the data in MySQL matches the blockchain.
+
+---
+
+## How to Track and Verify Blockchain Transactions
+
+- Every blockchain action (registration, upload, etc.) returns a transaction hash.
+- This hash is stored in your MySQL database along with the relevant data.
+- You can use Hardhat scripts (like `scripts/verifyAll.js`) to fetch all events from the contract and compare them with your database records.
+- For advanced tracking, use the provided script in the README to list all transactions in a given block.
+
+---
+
+## Quickstart & Installation Guide
+
+### Prerequisites
+- XAMPP/WAMP (for PHP & MySQL)
+- Node.js & npm (for Hardhat)
+- MetaMask browser extension
+
+### Step-by-Step Setup
+1. **Start XAMPP (Apache & MySQL)**
+   - Import `database/pharmacy_db.sql` into MySQL (using phpMyAdmin or command line).
+2. **Install Node.js Dependencies**
+   ```sh
+   npm install
+   ```
+3. **Compile the Smart Contract**
+   ```sh
+   npx hardhat compile
+   ```
+4. **Start the Hardhat Local Blockchain**
+   ```sh
+   npx hardhat node
+   ```
+5. **Deploy the Smart Contract**
+   ```sh
+   npx hardhat run scripts/deploy.js --network localhost
+   ```
+   - Copy the contract address from the output.
+6. **Update Frontend with Contract Address & ABI**
+   - Edit `assets/js/blockchain.js` with your contract address and ABI.
+7. **Import a Hardhat Account into MetaMask**
+   - Use a private key from the Hardhat node output.
+   - Switch MetaMask to "Localhost 8545".
+8. **Start Your PHP Web App**
+   - Go to `http://localhost/pharmacy_web_app_system/` in your browser.
+9. **Use Blockchain Features**
+   - Register users, upload prescriptions, etc. The frontend will interact with MetaMask and the blockchain.
+10. **Verify Blockchain Data**
+    - Run:
+      ```sh
+      npx hardhat run scripts/verifyAll.js --network localhost
+      ```
+    - Compare with your MySQL data.
+
+---
 
 ## Features
 

@@ -1,4 +1,6 @@
 <?php
+error_reporting(0);
+ini_set('display_errors', 0);
 session_start();
 require_once '../config/database.php';
 
@@ -359,9 +361,9 @@ $medicines = $conn->query("
             <?php foreach ($medicines as $medicine): ?>
                 <div class="col-md-6 col-lg-4">
                     <div class="medicine-card">
-                        <img src="<?php echo $medicine['image_url'] ?: '../assets/images/medicine-placeholder.jpg'; ?>" 
-                             alt="<?php echo htmlspecialchars($medicine['name']); ?>" 
-                             class="medicine-image w-100">
+                        <div class="medicine-image">
+                            <!-- No image is displayed for medicines -->
+                        </div>
                         <?php
                         $stockBadgeClass = '';
                         $stockText = '';
