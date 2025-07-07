@@ -19,8 +19,44 @@ if (isset($_POST['update_status'])) {
     $order_id = $_POST['order_id'];
     $new_status = $_POST['new_status'];
     
-    $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ? AND pharmacy_id = ?");
-    $stmt->execute([$new_status, $order_id, $pharmacy['id']]);
+    try {
+        $conn->beginTransaction();
+        
+        // Update order status
+        $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ? AND pharmacy_id = ?");
+        $stmt->execute([$new_status, $order_id, $pharmacy['id']]);
+        
+        // If order is approved, update medicine stock
+        if ($new_status === 'approved') {
+            // Get order items
+            $stmt = $conn->prepare("
+                SELECT oi.medicine_id, oi.quantity, m.stock_quantity 
+                FROM order_items oi 
+                JOIN medicines m ON oi.medicine_id = m.id 
+                WHERE oi.order_id = ?
+            ");
+            $stmt->execute([$order_id]);
+            $order_items = $stmt->fetchAll();
+            
+            // Update stock for each medicine
+            foreach ($order_items as $item) {
+                $new_stock = $item['stock_quantity'] - $item['quantity'];
+                if ($new_stock >= 0) {
+                    $stmt = $conn->prepare("UPDATE medicines SET stock_quantity = ? WHERE id = ?");
+                    $stmt->execute([$new_stock, $item['medicine_id']]);
+                } else {
+                    throw new Exception("Insufficient stock for medicine ID: " . $item['medicine_id']);
+                }
+            }
+        }
+        
+        $conn->commit();
+        $success_message = "Order status updated successfully!";
+        
+    } catch (Exception $e) {
+        $conn->rollBack();
+        $error_message = "Error updating order: " . $e->getMessage();
+    }
 }
 
 // Get all orders for this pharmacy
@@ -160,6 +196,20 @@ $smart_payments = $smart_payments->fetchAll();
 
     <!-- Main Content -->
     <div class="main-content">
+        <?php if (isset($success_message)): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i><?php echo $success_message; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+        
+        <?php if (isset($error_message)): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i><?php echo $error_message; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+        
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 style="color: #0b6e6e;">Manage Orders</h2>
             <div>

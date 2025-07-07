@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 05, 2025 at 07:17 AM
+-- Generation Time: Jul 07, 2025 at 08:40 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -156,6 +156,21 @@ CREATE TABLE `prescriptions` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `prescription_orders`
+--
+
+CREATE TABLE `prescription_orders` (
+  `id` int(11) NOT NULL,
+  `prescription_id` int(11) NOT NULL,
+  `medicine_id` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `price` decimal(10,2) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `smart_contract_payments`
 --
 
@@ -197,18 +212,21 @@ CREATE TABLE `users` (
   `user_type` enum('admin','pharmacy','customer') NOT NULL,
   `metamask_address` varchar(42) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `user_hash` varchar(66) DEFAULT NULL,
+  `tx_hash` varchar(66) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `email`, `password`, `user_type`, `metamask_address`, `created_at`, `updated_at`) VALUES
-(1, 'admin@pharmacy.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', NULL, '2025-05-16 15:40:15', '2025-05-16 15:40:15'),
-(6, 'abdi@gmail.com', '$2y$10$GbaCfEKRGRFmdSowIGZBrOK1UHq7XdBDTq9Kz5i6PfXgJBQY5yDlq', 'admin', '0x19523a25be5533a3080b07859580e62294235523', '2025-06-23 09:27:15', '2025-06-23 11:23:02'),
-(7, '', '$2y$10$8kDlaJspD32YFTbmwm/3aOsKIEPKe5OdEKziUL4H.JiG/CWo19kkC', 'customer', '', '2025-07-03 08:02:50', '2025-07-03 08:06:01'),
-(8, 'iamcaano2@gmail.com', '$2y$10$CUhY/McG.VCJnzZ9eLNaD.TnjG54.Q721k.SlRFcKIfqiqayNWeA6', 'customer', '0xba35cedd7c643be63027f34ebb9b964c21411b09', '2025-07-03 08:22:40', '2025-07-03 08:22:40');
+INSERT INTO `users` (`id`, `email`, `password`, `user_type`, `metamask_address`, `created_at`, `updated_at`, `user_hash`, `tx_hash`) VALUES
+(1, 'admin@pharmacy.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', NULL, '2025-05-16 15:40:15', '2025-05-16 15:40:15', NULL, NULL),
+(6, 'abdi@gmail.com', '$2y$10$GbaCfEKRGRFmdSowIGZBrOK1UHq7XdBDTq9Kz5i6PfXgJBQY5yDlq', 'admin', '0x19523a25be5533a3080b07859580e62294235523', '2025-06-23 09:27:15', '2025-06-23 11:23:02', NULL, NULL),
+(7, '', '$2y$10$8kDlaJspD32YFTbmwm/3aOsKIEPKe5OdEKziUL4H.JiG/CWo19kkC', 'customer', '', '2025-07-03 08:02:50', '2025-07-03 08:06:01', NULL, NULL),
+(8, 'iamcaano2@gmail.com', '$2y$10$CUhY/McG.VCJnzZ9eLNaD.TnjG54.Q721k.SlRFcKIfqiqayNWeA6', 'customer', '0xba35cedd7c643be63027f34ebb9b964c21411b09', '2025-07-03 08:22:40', '2025-07-03 08:22:40', NULL, NULL),
+(9, 'iamca@gmail.com', '$2y$10$v452itV05MbOKiBd478ecO0ng.ye..HfnqYCRHvCWZaT1cEbQGx2S', 'customer', '0x15d34aaf54267db7d7c367839aaf71a00a2c6a65', '2025-07-07 04:37:53', '2025-07-07 04:37:53', NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -267,6 +285,14 @@ ALTER TABLE `pharmacies`
 ALTER TABLE `prescriptions`
   ADD PRIMARY KEY (`id`),
   ADD KEY `customer_id` (`customer_id`);
+
+--
+-- Indexes for table `prescription_orders`
+--
+ALTER TABLE `prescription_orders`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `prescription_id` (`prescription_id`),
+  ADD KEY `medicine_id` (`medicine_id`);
 
 --
 -- Indexes for table `smart_contract_payments`
@@ -338,6 +364,12 @@ ALTER TABLE `prescriptions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT for table `prescription_orders`
+--
+ALTER TABLE `prescription_orders`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `smart_contract_payments`
 --
 ALTER TABLE `smart_contract_payments`
@@ -353,7 +385,7 @@ ALTER TABLE `system_logs`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- Constraints for dumped tables
@@ -384,8 +416,8 @@ ALTER TABLE `medicines`
 --
 ALTER TABLE `orders`
   ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`pharmacy_id`) REFERENCES `pharmacies` (`id`),
-  ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`prescription_id`) REFERENCES `prescriptions` (`id`);
+  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`pharmacy_id`) REFERENCES `pharmacies` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`prescription_id`) REFERENCES `prescriptions` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `order_items`
@@ -405,6 +437,13 @@ ALTER TABLE `pharmacies`
 --
 ALTER TABLE `prescriptions`
   ADD CONSTRAINT `prescriptions_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `prescription_orders`
+--
+ALTER TABLE `prescription_orders`
+  ADD CONSTRAINT `prescription_orders_ibfk_1` FOREIGN KEY (`prescription_id`) REFERENCES `prescriptions` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `prescription_orders_ibfk_2` FOREIGN KEY (`medicine_id`) REFERENCES `medicines` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `smart_contract_payments`

@@ -46,7 +46,7 @@ Pharmacy Web Application System is a modern, web-based platform for managing pha
 
 ---
 
-## Quickstart & Installation Guide
+## Complete Setup & Installation Guide
 
 ### Prerequisites
 - XAMPP/WAMP (for PHP & MySQL)
@@ -54,52 +54,124 @@ Pharmacy Web Application System is a modern, web-based platform for managing pha
 - MetaMask browser extension
 
 ### Step-by-Step Setup
+
 1. **Start XAMPP (Apache & MySQL)**
    - Import `database/pharmacy_db.sql` into MySQL (using phpMyAdmin or command line).
+   - **IMPORTANT:** Also run `database/update_tables.sql` to add missing tables for prescription orders.
+
 2. **Install Node.js Dependencies**
    ```sh
    npm install
    ```
+
 3. **Compile the Smart Contract**
    ```sh
    npx hardhat compile
    ```
+
 4. **Start the Hardhat Local Blockchain**
    ```sh
    npx hardhat node
    ```
+
 5. **Deploy the Smart Contract**
    ```sh
    npx hardhat run scripts/deploy.js --network localhost
    ```
-   - Copy the contract address from the output.
-6. **Update Frontend with Contract Address & ABI**
-   - Edit `assets/js/blockchain.js` with your contract address and ABI.
-7. **Import a Hardhat Account into MetaMask**
+   - This will automatically update the contract address in `assets/js/blockchain.js`
+
+6. **Import a Hardhat Account into MetaMask**
    - Use a private key from the Hardhat node output.
    - Switch MetaMask to "Localhost 8545".
-8. **Start Your PHP Web App**
+
+7. **Start Your PHP Web App**
    - Go to `http://localhost/pharmacy_web_app_system/` in your browser.
-9. **Use Blockchain Features**
-   - Register users, upload prescriptions, etc. The frontend will interact with MetaMask and the blockchain.
-10. **Verify Blockchain Data**
-    - Run:
-      ```sh
-      npx hardhat run scripts/verifyAll.js --network localhost
-      ```
-    - Compare with your MySQL data.
+
+8. **Test the Complete Workflow**
+   - Register users, pharmacies, and medicines
+   - Test the prescription-based order workflow
+   - Verify blockchain data
+
+9. **Verify Blockchain Data**
+   ```sh
+   npx hardhat run scripts/verifyAll.js --network localhost
+   ```
 
 ---
 
-## Features
+## Complete Workflow: Prescription-Based Orders
 
-- Multi-role user system (Admin, Pharmacy, Customer)
-- Medicine inventory management
-- Prescription upload and verification
-- Order management system
-- Blockchain integration for secure transactions
-- Modern UI with responsive design
-- Secure authentication system
+### For Customers:
+1. **Upload Prescription:** Go to "Prescription Order" page and upload prescription file
+2. **Select Medicines:** Choose medicines from available inventory
+3. **Submit Order:** Order goes to pharmacies for approval
+4. **Track Status:** Monitor order status in "My Orders"
+
+### For Pharmacies:
+1. **Review Orders:** See pending prescription orders in "Orders" page
+2. **Approve/Reject:** Update order status (approval automatically updates stock)
+3. **Manage Inventory:** Stock quantities are automatically updated when orders are approved
+
+### For Admins:
+1. **Monitor All:** View all orders, users, pharmacies, and medicines
+2. **Blockchain Verification:** Use verification scripts to audit blockchain data
+
+---
+
+## Fixed Issues
+
+✅ **Add to Cart:** Fixed JavaScript to work with existing POST form system  
+✅ **Pharmacy Profile:** Added all missing fields (name, email, phone, address, license)  
+✅ **Blockchain Verification:** Updated to read contract address from file and show proper data  
+✅ **Prescription Workflow:** Complete prescription upload → medicine selection → order submission → pharmacy approval  
+✅ **Stock Management:** Automatic stock updates when orders are approved  
+✅ **Contract Address:** Automatic updating of contract address in frontend after deployment  
+
+---
+
+## Troubleshooting
+
+### If verification shows empty results:
+1. Make sure you've deployed the contract: `npx hardhat run scripts/deploy.js --network localhost`
+2. Check that MetaMask is connected to localhost:8545
+3. Verify you've registered users/pharmacies/medicines through the web app
+4. Run verification again: `npx hardhat run scripts/verifyAll.js --network localhost`
+
+### If add to cart doesn't work:
+- The system now uses the existing POST form submission (no AJAX needed)
+- Make sure you're logged in as a customer
+
+### If prescription orders don't work:
+- Run the database update: `database/update_tables.sql`
+- Make sure the `prescription_orders` table exists
+
+### If blockchain integration doesn't work:
+- Check that the contract address is correctly set in `assets/js/blockchain.js`
+- Verify MetaMask is connected and on the correct network
+- Make sure you've imported a Hardhat account into MetaMask
+
+---
+
+## Database Tables Added/Updated
+
+- `prescription_orders`: Temporary storage for prescription-based orders
+- `orders`: Added `pharmacy_id`, `prescription_id`, and `status` columns
+- `prescriptions`: Added `status` column
+- Added proper foreign key constraints and indexes
+
+---
+
+## Blockchain Integration Status
+
+✅ Smart Contract: `PharmaRegistry.sol` - Stores hashes of users, pharmacies, medicines, prescriptions  
+✅ Frontend Integration: `assets/js/blockchain.js` - Connects to MetaMask and smart contract  
+✅ Deployment: `scripts/deploy.js` - Deploys contract and updates frontend  
+✅ Verification: `scripts/verifyAll.js` - Shows all blockchain events  
+✅ Automatic Setup: Contract address automatically updated after deployment  
+
+---
+
+**Your pharmacy system is now fully functional with blockchain integration! 🎉**
 
 ## Technology Stack
 

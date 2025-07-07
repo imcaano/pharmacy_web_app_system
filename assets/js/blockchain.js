@@ -1,7 +1,9 @@
 // assets/js/blockchain.js
-// Requires: ethers v6, MetaMask
+// Requires: ethers v5, MetaMask
 
-const CONTRACT_ADDRESS = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
+// Contract address will be updated after deployment
+// You need to replace this with your actual deployed contract address
+const CONTRACT_ADDRESS = '0x5fbdb2315678afecb367f032d93f642f64180aa3';
 const CONTRACT_ABI = [
   {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"bytes32","name":"medicineHash","type":"bytes32"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"MedicineRegistered","type":"event"},
   {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"bytes32","name":"pharmacyHash","type":"bytes32"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"PharmacyRegistered","type":"event"},
@@ -22,24 +24,51 @@ const CONTRACT_ABI = [
 ];
 
 async function connectMetaMask() {
-    if (!window.ethereum) throw new Error('MetaMask not found');
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    return { provider, signer };
+    try {
+        if (!window.ethereum) throw new Error('MetaMask not found');
+        console.log('MetaMask found, requesting accounts...');
+        
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        console.log('Accounts requested successfully');
+        
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        console.log('Provider and signer created successfully');
+        
+        return { provider, signer };
+    } catch (error) {
+        console.error('Error in connectMetaMask:', error);
+        throw error;
+    }
 }
 
 function hashString(str) {
-    return ethers.keccak256(ethers.toUtf8Bytes(str));
+    try {
+        const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(str));
+        console.log('Hash created for string:', str, 'Hash:', hash);
+        return hash;
+    } catch (error) {
+        console.error('Error in hashString:', error);
+        throw error;
+    }
 }
 
 async function registerUserOnChain(email) {
-    const { signer } = await connectMetaMask();
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-    const userHash = hashString(email);
-    const tx = await contract.registerUser(userHash);
-    await tx.wait();
-    return { userHash, txHash: tx.hash };
+    try {
+        console.log('Starting registerUserOnChain for email:', email);
+        const { signer } = await connectMetaMask();
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+        const userHash = hashString(email);
+        let timeout = setTimeout(() => {
+            alert('Transaction is taking longer than expected. Please check your MetaMask extension and confirm the transaction.');
+        }, 15000);
+        const tx = await contract.registerUser(userHash);
+        clearTimeout(timeout);
+        alert('User registration transaction sent to blockchain!\nHash: ' + userHash + '\nTxHash: ' + tx.hash);
+        return { userHash, txHash: tx.hash };
+    } catch (error) {
+        throw error;
+    }
 }
 
 async function registerPharmacyOnChain(pharmacyName) {

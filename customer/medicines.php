@@ -370,9 +370,7 @@ if (isset($_POST['add_to_cart'])) {
             <?php foreach ($medicines as $medicine): ?>
                 <div class="col-md-4">
                     <div class="medicine-card">
-                        <img src="<?php echo $medicine['image_url'] ?: '../assets/images/medicine-placeholder.jpg'; ?>" 
-                             alt="<?php echo htmlspecialchars($medicine['name']); ?>" 
-                             class="medicine-image w-100">
+                    
                         <?php
                         $stockBadgeClass = '';
                         $stockText = '';
@@ -424,31 +422,32 @@ if (isset($_POST['add_to_cart'])) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         function addToCart(medicineId) {
-            fetch('add_to_cart.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'medicine_id=' + medicineId
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Added to Cart!',
-                        text: data.message,
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: data.message
-                    });
-                }
-            });
+            // Create a form and submit it to work with existing PHP logic
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'medicines.php';
+            
+            const medicineIdInput = document.createElement('input');
+            medicineIdInput.type = 'hidden';
+            medicineIdInput.name = 'medicine_id';
+            medicineIdInput.value = medicineId;
+            
+            const quantityInput = document.createElement('input');
+            quantityInput.type = 'hidden';
+            quantityInput.name = 'quantity';
+            quantityInput.value = 1; // Default quantity
+            
+            const addToCartInput = document.createElement('input');
+            addToCartInput.type = 'hidden';
+            addToCartInput.name = 'add_to_cart';
+            addToCartInput.value = '1';
+            
+            form.appendChild(medicineIdInput);
+            form.appendChild(quantityInput);
+            form.appendChild(addToCartInput);
+            
+            document.body.appendChild(form);
+            form.submit();
         }
     </script>
 </body>

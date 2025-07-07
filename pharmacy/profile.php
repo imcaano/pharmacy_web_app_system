@@ -219,11 +219,45 @@ if (!$pharmacy): ?>
                         <p class="text-muted">Pharmacy User Profile</p>
                     </div>
                     <form method="POST" class="mb-5">
-                        <h5 class="mb-4">Wallet & Role</h5>
+                        <h5 class="mb-4">Pharmacy Information</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Pharmacy Name</label>
+                                    <input type="text" class="form-control" name="name" value="<?php echo htmlspecialchars($pharmacy['name'] ?? ''); ?>" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($pharmacy['email'] ?? ''); ?>" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" name="phone" value="<?php echo htmlspecialchars($pharmacy['phone'] ?? ''); ?>" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">License Number</label>
+                                    <input type="text" class="form-control" name="license_number" value="<?php echo htmlspecialchars($pharmacy['license_number'] ?? ''); ?>" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" name="address" rows="3" required><?php echo htmlspecialchars($pharmacy['address'] ?? ''); ?></textarea>
+                        </div>
+                        
+                        <h5 class="mb-4 mt-5">Wallet & Role</h5>
                         <div class="mb-3">
                             <label class="form-label">MetaMask Address</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" name="metamask_address" id="metamaskAddress" value="<?php echo $pharmacy['metamask_address'] ?? ''; ?>" readonly>
+                                <input type="text" class="form-control" name="metamask_address" id="metamaskAddress" value="<?php echo htmlspecialchars($pharmacy['metamask_address'] ?? ''); ?>" readonly>
                                 <button type="button" class="btn btn-outline-secondary" onclick="connectWalletAndFill()">
                                     <i class="fab fa-ethereum"></i> Connect Wallet
                                 </button>
@@ -231,8 +265,12 @@ if (!$pharmacy): ?>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Role</label>
-                            <input type="text" class="form-control" value="pharmacy" readonly>
+                            <input type="text" class="form-control" value="Pharmacy" readonly>
                         </div>
+                        
+                        <button type="submit" name="update_profile" class="save-changes-btn">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
                     </form>
                 </div>
             </div>
