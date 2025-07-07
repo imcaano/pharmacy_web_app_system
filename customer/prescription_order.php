@@ -59,7 +59,6 @@ if (isset($_POST['add_medicine_to_order'])) {
     $medicine_id = $_POST['medicine_id'];
     $quantity = $_POST['quantity'];
     $prescription_id = $_SESSION['current_prescription_id'] ?? null;
-    
     if (!$prescription_id) {
         $error = "Please upload a prescription first.";
     } else {
@@ -67,12 +66,15 @@ if (isset($_POST['add_medicine_to_order'])) {
         $stmt = $conn->prepare("SELECT * FROM medicines WHERE id = ? AND stock_quantity >= ?");
         $stmt->execute([$medicine_id, $quantity]);
         $medicine = $stmt->fetch();
-        
         if ($medicine) {
-            // Add to prescription order (temporary cart for prescription orders)
-            $stmt = $conn->prepare("INSERT INTO prescription_orders (prescription_id, medicine_id, quantity, price) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$prescription_id, $medicine_id, $quantity, $medicine['price']]);
-            $success = "Medicine added to prescription order.";
+            if (empty($medicine['pharmacy_id'])) {
+                $error = "This medicine is not associated with a valid pharmacy and cannot be added.";
+            } else {
+                // Add to prescription order (temporary cart for prescription orders)
+                $stmt = $conn->prepare("INSERT INTO prescription_orders (prescription_id, medicine_id, quantity, price) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$prescription_id, $medicine_id, $quantity, $medicine['price']]);
+                $success = "Medicine added to prescription order.";
+            }
         } else {
             $error = "Medicine not available or insufficient stock.";
         }
@@ -117,14 +119,17 @@ if (isset($_POST['submit_prescription_order'])) {
             
             // Create orders for each pharmacy
             foreach ($pharmacy_orders as $pharmacy_id => $pharmacy_order) {
+                if (empty($pharmacy_id)) {
+                    error_log('Order creation skipped: pharmacy_id is NULL or empty for prescription_id ' . $prescription_id);
+                    continue; // Skip this order if pharmacy_id is not set
+                }
                 // Create main order
                 $stmt = $conn->prepare("
                     INSERT INTO orders (customer_id, pharmacy_id, prescription_id, total_amount, status, created_at) 
-                    VALUES (?, ?, ?, ?, 'pending_approval', NOW())
+                    VALUES (?, ?, ?, ?, 'pending', NOW())
                 ");
                 $stmt->execute([$_SESSION['user_id'], $pharmacy_id, $prescription_id, $pharmacy_order['total']]);
                 $order_id = $conn->lastInsertId();
-                
                 // Add order items
                 foreach ($pharmacy_order['items'] as $item) {
                     $stmt = $conn->prepare("

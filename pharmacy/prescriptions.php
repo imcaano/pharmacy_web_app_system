@@ -39,13 +39,9 @@ if (isset($_POST['verify_prescription'])) {
 $prescriptions = $conn->query("
     SELECT p.*, 
            u.email as customer_email,
-           o.id as order_id,
-           o.status as order_status,
-           o.total_amount
+           p.prescription_file
     FROM prescriptions p 
     JOIN users u ON p.customer_id = u.id 
-    LEFT JOIN orders o ON p.id = o.prescription_id 
-    WHERE o.pharmacy_id = " . $pharmacy['id'] . "
     ORDER BY p.created_at DESC
 ")->fetchAll();
 ?>
@@ -205,17 +201,6 @@ $prescriptions = $conn->query("
                                 <p class="mb-1">
                                     <i class="fas fa-calendar me-2"></i><?php echo date('M d, Y', strtotime($prescription['created_at'])); ?>
                                 </p>
-                                <?php if ($prescription['order_id']): ?>
-                                    <p class="mb-1">
-                                        <i class="fas fa-shopping-cart me-2"></i>Order #<?php echo $prescription['order_id']; ?>
-                                        <span class="order-badge order-<?php echo $prescription['order_status']; ?> ms-2">
-                                            <?php echo ucfirst($prescription['order_status']); ?>
-                                        </span>
-                                    </p>
-                                    <p class="mb-1">
-                                        <i class="fas fa-dollar-sign me-2"></i><?php echo number_format($prescription['total_amount'], 2); ?>
-                                    </p>
-                                <?php endif; ?>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="btn-group">
@@ -226,7 +211,7 @@ $prescriptions = $conn->query("
                                         <i class="fas fa-check"></i>
                                     </button>
                                 </div>
-                                <a href="<?php echo $prescription['prescription_file']; ?>" class="btn btn-sm btn-outline-info" target="_blank">
+                                <a href="../uploads/prescriptions/<?php echo htmlspecialchars($prescription['prescription_file']); ?>" class="btn btn-sm btn-outline-info" target="_blank">
                                     <i class="fas fa-file-medical me-1"></i>View File
                                 </a>
                             </div>

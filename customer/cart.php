@@ -74,6 +74,10 @@ $stmt = $conn->prepare("
 ");
 $stmt->execute([$_SESSION['user_id']]);
 $cart_items = $stmt->fetchAll();
+// Filter out any cart items where pharmacy_id is missing (should not happen, but for robustness)
+$cart_items = array_filter($cart_items, function($item) {
+    return !empty($item['pharmacy_name']);
+});
 
 // Calculate total
 $total = 0;

@@ -235,6 +235,13 @@ $smart_payments = $smart_payments->fetchAll();
             <div class="tab-pane fade show active" id="orders" role="tabpanel">
                 <!-- Orders Grid -->
                 <div class="row g-4">
+                    <?php if (empty($orders)): ?>
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>No orders found for your pharmacy yet.
+                            </div>
+                        </div>
+                    <?php endif; ?>
                     <?php foreach ($orders as $order): ?>
                         <div class="col-md-6 col-lg-4">
                             <div class="order-card p-4">
@@ -267,9 +274,15 @@ $smart_payments = $smart_payments->fetchAll();
                                         <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewOrderModal<?php echo $order['id']; ?>">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#updateStatusModal<?php echo $order['id']; ?>">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
+                                        <?php if ($order['status'] === 'pending'): ?>
+                                            <form method="POST" class="d-inline">
+                                                <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                                                <input type="hidden" name="new_status" value="approved">
+                                                <button type="submit" name="update_status" class="btn btn-success btn-sm">
+                                                    <i class="fas fa-check"></i> Approve
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -351,34 +364,6 @@ $smart_payments = $smart_payments->fetchAll();
                                             <i class="fab fa-ethereum"></i> Sign with Wallet
                                         </button>
                                         <div id="signResult<?php echo $order['id']; ?>" class="mt-2"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Update Status Modal -->
-                        <div class="modal fade" id="updateStatusModal<?php echo $order['id']; ?>" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Update Order Status</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form method="POST">
-                                            <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                                            <div class="mb-3">
-                                                <label class="form-label">Status</label>
-                                                <select name="new_status" class="form-select" required>
-                                                    <option value="pending" <?php echo $order['status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                                                    <option value="approved" <?php echo $order['status'] === 'approved' ? 'selected' : ''; ?>>Approved</option>
-                                                    <option value="rejected" <?php echo $order['status'] === 'rejected' ? 'selected' : ''; ?>>Rejected</option>
-                                                    <option value="completed" <?php echo $order['status'] === 'completed' ? 'selected' : ''; ?>>Completed</option>
-                                                    <option value="cancelled" <?php echo $order['status'] === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
-                                                </select>
-                                            </div>
-                                            <button type="submit" name="update_status" class="btn btn-primary">Update Status</button>
-                                        </form>
                                     </div>
                                 </div>
                             </div>

@@ -268,27 +268,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 return;
             }
             const signupBtn = document.getElementById('signupBtn');
-            signupBtn.disabled = true;
-            signupBtn.textContent = 'Processing...';
-            signupBtn.classList.add('disabled');
             try {
-                console.log('Starting blockchain registration for email:', email);
-                console.log('MetaMask address:', metamaskAddress);
+                // MetaMask popup should appear instantly
                 const result = await window.registerUserOnChain(email);
-                console.log('Blockchain registration successful:', result);
+                // Only after MetaMask interaction, show loading state
+                signupBtn.disabled = true;
+                signupBtn.textContent = 'Processing...';
+                signupBtn.classList.add('disabled');
                 document.getElementById('userHash').value = result.userHash;
                 document.getElementById('txHash').value = result.txHash;
-                console.log('Form data prepared, submitting...');
-                // Show a success message
                 alert('Registration successful! Redirecting to login...');
                 this.submit();
             } catch (error) {
-                console.error('Blockchain registration failed:', error);
-                console.error('Error details:', {
-                    message: error.message,
-                    code: error.code,
-                    stack: error.stack
-                });
                 let errorMessage = 'Failed to register on blockchain. ';
                 if (error.message && error.message.includes('MetaMask')) {
                     errorMessage += 'Please check MetaMask connection.';

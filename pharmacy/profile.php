@@ -18,7 +18,7 @@ $pharmacy = $conn->query("
 
 // Handle profile update
 if (isset($_POST['update_profile'])) {
-    $name = $_POST['name'];
+    $pharmacy_name = $_POST['pharmacy_name'];
     $address = $_POST['address'];
     $phone = $_POST['phone'];
     $license_number = $_POST['license_number'];
@@ -28,10 +28,10 @@ if (isset($_POST['update_profile'])) {
     // Update pharmacy details
     $stmt = $conn->prepare("
         UPDATE pharmacies 
-        SET name = ?, address = ?, phone = ?, license_number = ? 
+        SET pharmacy_name = ?, address = ?, phone = ?, license_number = ? 
         WHERE user_id = ?
     ");
-    $stmt->execute([$name, $address, $phone, $license_number, $_SESSION['user_id']]);
+    $stmt->execute([$pharmacy_name, $address, $phone, $license_number, $_SESSION['user_id']]);
     
     // Update user details
     $stmt = $conn->prepare("
@@ -215,7 +215,7 @@ if (!$pharmacy): ?>
                         <div class="profile-avatar">
                             <i class="fas fa-clinic-medical" style="color: #0b6e6e;"></i>
                         </div>
-                        <h3 style="color: #0b6e6e;"><?php echo $pharmacy['name'] ?? ''; ?></h3>
+                        <h3 style="color: #0b6e6e;"><?php echo $pharmacy['pharmacy_name'] ?? ''; ?></h3>
                         <p class="text-muted">Pharmacy User Profile</p>
                     </div>
                     <form method="POST" class="mb-5">
@@ -224,7 +224,7 @@ if (!$pharmacy): ?>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Pharmacy Name</label>
-                                    <input type="text" class="form-control" name="name" value="<?php echo htmlspecialchars($pharmacy['name'] ?? ''); ?>" required>
+                                    <input type="text" class="form-control" name="pharmacy_name" value="<?php echo htmlspecialchars($pharmacy['pharmacy_name'] ?? ''); ?>" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
