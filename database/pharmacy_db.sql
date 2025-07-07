@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 07, 2025 at 08:40 AM
+-- Generation Time: Jul 07, 2025 at 02:17 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -58,7 +58,7 @@ CREATE TABLE `dispute_logs` (
 
 CREATE TABLE `medicines` (
   `id` int(11) NOT NULL,
-  `pharmacy_id` int(11) DEFAULT NULL,
+  `pharmacy_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `manufacturer` varchar(255) DEFAULT NULL,
@@ -73,6 +73,13 @@ CREATE TABLE `medicines` (
   `batch_source_info` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `medicines`
+--
+
+INSERT INTO `medicines` (`id`, `pharmacy_id`, `name`, `description`, `manufacturer`, `country_of_origin`, `category`, `price`, `stock_quantity`, `expiry_date`, `requires_prescription`, `status`, `created_at`, `batch_source_info`) VALUES
+(4, 3, 'PARECTAMOL', NULL, NULL, NULL, 'Antibiotic', 20.00, 1998, NULL, 0, 'active', '2025-07-07 10:23:44', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -82,7 +89,7 @@ CREATE TABLE `medicines` (
 CREATE TABLE `orders` (
   `id` int(11) NOT NULL,
   `customer_id` int(11) DEFAULT NULL,
-  `pharmacy_id` int(11) DEFAULT NULL,
+  `pharmacy_id` int(11) NOT NULL,
   `prescription_id` int(11) DEFAULT NULL,
   `total_amount` decimal(10,2) NOT NULL,
   `status` enum('pending','approved','rejected','completed','cancelled') DEFAULT 'pending',
@@ -92,6 +99,13 @@ CREATE TABLE `orders` (
   `payout_amount` decimal(10,2) DEFAULT NULL,
   `payout_tx_hash` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`id`, `customer_id`, `pharmacy_id`, `prescription_id`, `total_amount`, `status`, `payment_status`, `transaction_hash`, `created_at`, `payout_amount`, `payout_tx_hash`) VALUES
+(2, 12, 3, NULL, 20.00, 'approved', 'pending', '0x1d7ab29d90de313aa02ebc24522ab7307d8f03f37951fb2ce0183aa1026badf3', '2025-07-07 10:29:59', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -106,6 +120,13 @@ CREATE TABLE `order_items` (
   `quantity` int(11) NOT NULL,
   `price` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `order_items`
+--
+
+INSERT INTO `order_items` (`id`, `order_id`, `medicine_id`, `quantity`, `price`) VALUES
+(2, 2, 4, 1, 20.00);
 
 -- --------------------------------------------------------
 
@@ -131,7 +152,8 @@ CREATE TABLE `pharmacies` (
 --
 
 INSERT INTO `pharmacies` (`id`, `user_id`, `pharmacy_name`, `address`, `phone`, `license_number`, `status`, `wallet_address`, `trust_score`, `performance`) VALUES
-(2, 6, 'My Pharmacy', '', NULL, NULL, 'active', NULL, 100.00, NULL);
+(2, 6, 'My Pharmacy', '', NULL, NULL, 'active', NULL, 100.00, NULL),
+(3, 11, 'shaafi', 'km4\r\nkm4', '6666', '77777', 'active', NULL, 100.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -152,6 +174,13 @@ CREATE TABLE `prescriptions` (
   `verified_at` timestamp NULL DEFAULT NULL,
   `verification_tx_hash` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `prescriptions`
+--
+
+INSERT INTO `prescriptions` (`id`, `customer_id`, `doctor_name`, `prescription_file`, `prescription_hash`, `status`, `created_at`, `verification_status`, `verification_notes`, `verified_at`, `verification_tx_hash`) VALUES
+(2, 12, NULL, 'presc_686ba1bb65e453.19727776.pdf', NULL, 'pending', '2025-07-07 10:30:19', 'verified', 'h', '2025-07-07 12:13:26', NULL);
 
 -- --------------------------------------------------------
 
@@ -222,11 +251,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `user_type`, `metamask_address`, `created_at`, `updated_at`, `user_hash`, `tx_hash`) VALUES
-(1, 'admin@pharmacy.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', NULL, '2025-05-16 15:40:15', '2025-05-16 15:40:15', NULL, NULL),
 (6, 'abdi@gmail.com', '$2y$10$GbaCfEKRGRFmdSowIGZBrOK1UHq7XdBDTq9Kz5i6PfXgJBQY5yDlq', 'admin', '0x19523a25be5533a3080b07859580e62294235523', '2025-06-23 09:27:15', '2025-06-23 11:23:02', NULL, NULL),
-(7, '', '$2y$10$8kDlaJspD32YFTbmwm/3aOsKIEPKe5OdEKziUL4H.JiG/CWo19kkC', 'customer', '', '2025-07-03 08:02:50', '2025-07-03 08:06:01', NULL, NULL),
-(8, 'iamcaano2@gmail.com', '$2y$10$CUhY/McG.VCJnzZ9eLNaD.TnjG54.Q721k.SlRFcKIfqiqayNWeA6', 'customer', '0xba35cedd7c643be63027f34ebb9b964c21411b09', '2025-07-03 08:22:40', '2025-07-03 08:22:40', NULL, NULL),
-(9, 'iamca@gmail.com', '$2y$10$v452itV05MbOKiBd478ecO0ng.ye..HfnqYCRHvCWZaT1cEbQGx2S', 'customer', '0x15d34aaf54267db7d7c367839aaf71a00a2c6a65', '2025-07-07 04:37:53', '2025-07-07 04:37:53', NULL, NULL);
+(11, 'iamcaano2@gmail.com', '$2y$10$qOtnrv0hevBsfNtNlndNj.2Ak4MTgcgahSJaAKlEiJnMntn.kekwO', 'pharmacy', '0x2546BcD3c84621e976D8185a91A922aE77ECEc30', '2025-07-07 10:22:59', '2025-07-07 10:22:59', '0x9db22984d7a856e2493387dcb465b5999f9d5989c38676923bc50b3d02151e2d', '0x58fcf08914ea584a30ec238367bf07b2c394940fafaa732c6f6eab7f521d45a7'),
+(12, 'imhamza1@yahoo.com', '$2y$10$oi9IeX57vc.xgeeHQ.w.yeA7uNHMMOjvNMnsC1BRYMBGA3QSia9SK', 'customer', '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', '2025-07-07 10:29:26', '2025-07-07 10:29:26', '0x200fd56ffa00380272934f34ebab7a36f8de79f7415180729c914a1066269074', '0x77e405704983eee71c88f933da4699b968cb101e2df9d1472f02340eb9088eb7');
 
 --
 -- Indexes for dumped tables
@@ -325,7 +352,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `dispute_logs`
@@ -337,31 +364,31 @@ ALTER TABLE `dispute_logs`
 -- AUTO_INCREMENT for table `medicines`
 --
 ALTER TABLE `medicines`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `pharmacies`
 --
 ALTER TABLE `pharmacies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `prescriptions`
 --
 ALTER TABLE `prescriptions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `prescription_orders`
@@ -385,7 +412,7 @@ ALTER TABLE `system_logs`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- Constraints for dumped tables
@@ -416,7 +443,7 @@ ALTER TABLE `medicines`
 --
 ALTER TABLE `orders`
   ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`pharmacy_id`) REFERENCES `pharmacies` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`pharmacy_id`) REFERENCES `pharmacies` (`id`),
   ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`prescription_id`) REFERENCES `prescriptions` (`id`) ON DELETE SET NULL;
 
 --
