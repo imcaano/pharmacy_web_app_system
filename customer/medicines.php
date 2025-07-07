@@ -84,29 +84,29 @@ if (isset($_POST['add_to_cart'])) {
         if (empty($medicine['pharmacy_id'])) {
             $error = "This medicine is not associated with a valid pharmacy and cannot be added to cart.";
         } else {
-            // Check if medicine is already in cart
-            $stmt = $conn->prepare("SELECT * FROM cart WHERE customer_id = ? AND medicine_id = ?");
-            $stmt->execute([$_SESSION['user_id'], $medicine_id]);
-            $cart_item = $stmt->fetch();
-            
-            if ($cart_item) {
-                // Check if total quantity (existing + new) doesn't exceed stock
-                $total_quantity = $cart_item['quantity'] + $quantity;
-                if ($total_quantity <= $medicine['stock_quantity']) {
-                    // Update quantity
-                    $stmt = $conn->prepare("UPDATE cart SET quantity = quantity + ? WHERE customer_id = ? AND medicine_id = ?");
-                    $stmt->execute([$quantity, $_SESSION['user_id'], $medicine_id]);
-                    header('Location: medicines.php?success=1');
-                    exit();
-                } else {
-                    $error = "Cannot add " . $quantity . " more units. Only " . ($medicine['stock_quantity'] - $cart_item['quantity']) . " additional units available.";
-                }
-            } else {
-                // Add to cart
-                $stmt = $conn->prepare("INSERT INTO cart (customer_id, medicine_id, quantity) VALUES (?, ?, ?)");
-                $stmt->execute([$_SESSION['user_id'], $medicine_id, $quantity]);
+        // Check if medicine is already in cart
+        $stmt = $conn->prepare("SELECT * FROM cart WHERE customer_id = ? AND medicine_id = ?");
+        $stmt->execute([$_SESSION['user_id'], $medicine_id]);
+        $cart_item = $stmt->fetch();
+        
+        if ($cart_item) {
+            // Check if total quantity (existing + new) doesn't exceed stock
+            $total_quantity = $cart_item['quantity'] + $quantity;
+            if ($total_quantity <= $medicine['stock_quantity']) {
+                // Update quantity
+                $stmt = $conn->prepare("UPDATE cart SET quantity = quantity + ? WHERE customer_id = ? AND medicine_id = ?");
+                $stmt->execute([$quantity, $_SESSION['user_id'], $medicine_id]);
                 header('Location: medicines.php?success=1');
                 exit();
+            } else {
+                $error = "Cannot add " . $quantity . " more units. Only " . ($medicine['stock_quantity'] - $cart_item['quantity']) . " additional units available.";
+            }
+        } else {
+            // Add to cart
+            $stmt = $conn->prepare("INSERT INTO cart (customer_id, medicine_id, quantity) VALUES (?, ?, ?)");
+            $stmt->execute([$_SESSION['user_id'], $medicine_id, $quantity]);
+            header('Location: medicines.php?success=1');
+            exit();
             }
         }
     } else {

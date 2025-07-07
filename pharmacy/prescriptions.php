@@ -39,6 +39,7 @@ if (isset($_POST['verify_prescription'])) {
 $prescriptions = $conn->query("
     SELECT p.*, 
            u.email as customer_email,
+           u.metamask_address,
            p.prescription_file
     FROM prescriptions p 
     JOIN users u ON p.customer_id = u.id 
@@ -126,6 +127,31 @@ $prescriptions = $conn->query("
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(11, 110, 110, 0.2);
         }
+
+        .expert-prescription-card {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f5fafd 100%);
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(11, 110, 110, 0.10), 0 1.5px 4px rgba(0,0,0,0.04);
+            border: none;
+            transition: box-shadow 0.2s, transform 0.2s;
+            position: relative;
+        }
+        .expert-prescription-card:hover {
+            box-shadow: 0 8px 32px rgba(11, 110, 110, 0.18), 0 3px 8px rgba(0,0,0,0.08);
+            transform: translateY(-2px) scale(1.01);
+            background: linear-gradient(135deg, #b2ebf2 0%, #e0f7fa 100%);
+        }
+        .expert-prescription-card .badge {
+            font-size: 1rem;
+            padding: 0.5em 1em;
+            border-radius: 12px;
+        }
+        .expert-prescription-card .fw-bold {
+            word-break: break-all;
+            white-space: normal;
+            font-size: 1.1rem;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -182,42 +208,27 @@ $prescriptions = $conn->query("
             <?php else: ?>
                 <?php foreach ($prescriptions as $prescription): ?>
                     <div class="col-md-6 col-lg-4">
-                        <div class="prescription-card p-4">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <h5 class="mb-1">Prescription #<?php echo $prescription['id']; ?></h5>
-                                    <p class="text-muted mb-0">
-                                        <i class="fas fa-user me-2"></i><?php echo $prescription['customer_email']; ?>
-                                    </p>
-                                </div>
-                                <span class="verification-badge verification-<?php echo $prescription['verification_status']; ?>">
-                                    <?php echo ucfirst($prescription['verification_status']); ?>
-                                </span>
+                        <div class="expert-prescription-card p-4 mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="mb-0">#<?php echo $prescription['id']; ?></h5>
+                                <span class="badge bg-success fs-6"><?php echo ucfirst($prescription['verification_status']); ?></span>
                             </div>
-                            <div class="mb-3">
-                                <p class="mb-1">
-                                    <i class="fas fa-user-md me-2"></i>Dr. <?php echo $prescription['doctor_name']; ?>
-                                </p>
-                                <p class="mb-1">
-                                    <i class="fas fa-calendar me-2"></i><?php echo date('M d, Y', strtotime($prescription['created_at'])); ?>
-                                </p>
+                            <div class="mb-2">
+                                <i class="fas fa-wallet me-2"></i>
+                                <span class="fw-bold"><?php echo $prescription['metamask_address']; ?></span>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewPrescriptionModal<?php echo $prescription['id']; ?>">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#verifyPrescriptionModal<?php echo $prescription['id']; ?>">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                </div>
-                                <a href="../uploads/prescriptions/<?php echo htmlspecialchars($prescription['prescription_file']); ?>" class="btn btn-sm btn-outline-info" target="_blank">
-                                    <i class="fas fa-file-medical me-1"></i>View File
+                            <div class="mb-2">
+                                <i class="fas fa-calendar me-2"></i>
+                                <?php echo date('M d, Y', strtotime($prescription['created_at'])); ?>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewPrescriptionModal<?php echo $prescription['id']; ?>">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </button>
+                                <a href="../uploads/prescriptions/<?php echo htmlspecialchars($prescription['prescription_file']); ?>" class="btn btn-info" target="_blank">
+                                    <i class="fas fa-file-medical me-1"></i>File
                                 </a>
                             </div>
-                            <button class="btn btn-outline-secondary btn-sm mt-2" onclick="verifyHashOnBlockchain('<?php echo $prescription['prescription_hash']; ?>')">
-                                <i class="fas fa-link"></i> Verify Hash on Blockchain
-                            </button>
                         </div>
                     </div>
 
@@ -233,19 +244,14 @@ $prescriptions = $conn->query("
                                     <div class="row mb-4">
                                         <div class="col-md-6">
                                             <h6>Customer Information</h6>
-                                            <p class="mb-1">Email: <?php echo $prescription['customer_email']; ?></p>
+                                            <p class="mb-1">Metamask Address: <?php echo $prescription['metamask_address']; ?></p>
                                             <p class="mb-1">Date: <?php echo date('M d, Y', strtotime($prescription['created_at'])); ?></p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h6>Doctor Information</h6>
-                                            <p class="mb-1">Name: Dr. <?php echo $prescription['doctor_name']; ?></p>
-                                            <p class="mb-1">License: <?php echo $prescription['doctor_license']; ?></p>
                                         </div>
                                     </div>
                                     <div class="mb-4">
                                         <h6>Prescription Details</h6>
-                                        <p class="mb-1"><strong>Diagnosis:</strong> <?php echo $prescription['diagnosis']; ?></p>
-                                        <p class="mb-1"><strong>Notes:</strong> <?php echo $prescription['notes']; ?></p>
+                                        <p class="mb-1"><strong>Diagnosis:</strong> <?php echo isset($prescription['diagnosis']) ? $prescription['diagnosis'] : ''; ?></p>
+                                        <p class="mb-1"><strong>Notes:</strong> <?php echo isset($prescription['notes']) ? $prescription['notes'] : ''; ?></p>
                                     </div>
                                     <?php if ($prescription['verification_status'] !== 'pending'): ?>
                                         <div class="mb-4">
@@ -255,44 +261,14 @@ $prescriptions = $conn->query("
                                             <p class="mb-1"><strong>Verified At:</strong> <?php echo date('M d, Y H:i', strtotime($prescription['verified_at'])); ?></p>
                                         </div>
                                     <?php endif; ?>
-                                    <?php if ($prescription['order_id']): ?>
+                                    <?php if (isset($prescription['order_id']) && $prescription['order_id']): ?>
                                         <div>
                                             <h6>Related Order</h6>
                                             <p class="mb-1"><strong>Order ID:</strong> #<?php echo $prescription['order_id']; ?></p>
-                                            <p class="mb-1"><strong>Status:</strong> <?php echo ucfirst($prescription['order_status']); ?></p>
-                                            <p class="mb-1"><strong>Amount:</strong> $<?php echo number_format($prescription['total_amount'], 2); ?></p>
+                                            <p class="mb-1"><strong>Status:</strong> <?php echo isset($prescription['order_status']) ? ucfirst($prescription['order_status']) : ''; ?></p>
+                                            <p class="mb-1"><strong>Amount:</strong> $<?php echo isset($prescription['total_amount']) ? number_format($prescription['total_amount'], 2) : ''; ?></p>
                                         </div>
                                     <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Verify Prescription Modal -->
-                    <div class="modal fade" id="verifyPrescriptionModal<?php echo $prescription['id']; ?>" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Verify Prescription</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <form method="POST">
-                                        <input type="hidden" name="prescription_id" value="<?php echo $prescription['id']; ?>">
-                                        <div class="mb-3">
-                                            <label class="form-label">Verification Status</label>
-                                            <select name="verification_status" class="form-select" required>
-                                                <option value="pending" <?php echo $prescription['verification_status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                                                <option value="verified" <?php echo $prescription['verification_status'] === 'verified' ? 'selected' : ''; ?>>Verified</option>
-                                                <option value="rejected" <?php echo $prescription['verification_status'] === 'rejected' ? 'selected' : ''; ?>>Rejected</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Verification Notes</label>
-                                            <textarea class="form-control" name="verification_notes" rows="3" required><?php echo $prescription['verification_notes']; ?></textarea>
-                                        </div>
-                                        <button type="submit" name="verify_prescription" class="btn btn-primary">Update Verification</button>
-                                    </form>
                                 </div>
                             </div>
                         </div>

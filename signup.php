@@ -250,11 +250,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         window.selectUserType = selectUserType;
 
         window.setMetaMaskAddress = async function() {
-            try {
+                try {
                 const { signer } = await window.connectMetaMask();
                 const account = await signer.getAddress();
-                document.getElementById('metamaskAddress').value = account;
-            } catch (error) {
+                    document.getElementById('metamaskAddress').value = account;
+                } catch (error) {
                 alert('MetaMask connection failed: ' + error.message);
             }
         }
