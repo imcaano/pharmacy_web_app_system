@@ -366,19 +366,18 @@ $payment_reports = $conn->query("SELECT scp.*, p.pharmacy_name, o.total_amount, 
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="exportReportForm">
+                    <form id="exportReportForm" action="export_orders.php" method="POST">
                         <div class="mb-3">
                             <label class="form-label">Report Type</label>
-                            <select class="form-select" required>
-                                <option value="revenue">Revenue Report</option>
+                            <select name="report_type" class="form-select" required onchange="updateExportAction(this.value)">
                                 <option value="orders">Orders Report</option>
                                 <option value="medicines">Medicines Report</option>
-                                <option value="pharmacies">Pharmacies Report</option>
+                                <option value="users">Users Report</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Export Format</label>
-                            <select class="form-select" required>
+                            <select name="format" class="form-select" required>
                                 <option value="csv">CSV</option>
                                 <option value="excel">Excel</option>
                                 <option value="pdf">PDF</option>
@@ -388,11 +387,17 @@ $payment_reports = $conn->query("SELECT scp.*, p.pharmacy_name, o.total_amount, 
                             <label class="form-label">Date Range</label>
                             <div class="row">
                                 <div class="col">
-                                    <input type="date" class="form-control" placeholder="From" required>
+                                    <input type="date" name="date_from" class="form-control" placeholder="From">
                                 </div>
                                 <div class="col">
-                                    <input type="date" class="form-control" placeholder="To" required>
+                                    <input type="date" name="date_to" class="form-control" placeholder="To">
                                 </div>
+                            </div>
+                        </div>
+                        <div class="mb-3" id="includeItemsDiv" style="display: none;">
+                            <div class="form-check">
+                                <input type="checkbox" name="include_items" class="form-check-input" id="includeItems" value="1">
+                                <label class="form-check-label" for="includeItems">Include Order Items</label>
                             </div>
                         </div>
                     </form>
@@ -407,6 +412,26 @@ $payment_reports = $conn->query("SELECT scp.*, p.pharmacy_name, o.total_amount, 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function updateExportAction(reportType) {
+            const form = document.getElementById('exportReportForm');
+            const includeItemsDiv = document.getElementById('includeItemsDiv');
+            
+            switch(reportType) {
+                case 'orders':
+                    form.action = 'export_orders.php';
+                    includeItemsDiv.style.display = 'block';
+                    break;
+                case 'medicines':
+                    form.action = 'export_medicines.php';
+                    includeItemsDiv.style.display = 'none';
+                    break;
+                case 'users':
+                    form.action = 'export_users.php';
+                    includeItemsDiv.style.display = 'none';
+                    break;
+            }
+        }
+        
         // Revenue Chart
         const ctx = document.getElementById('revenueChart').getContext('2d');
         new Chart(ctx, {

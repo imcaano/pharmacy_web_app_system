@@ -386,9 +386,14 @@ $users = $conn->query("
         <?php endif; ?>
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Manage Users</h2>
-            <button class="btn add-user-btn" data-bs-toggle="modal" data-bs-target="#addUserModal">
-                <i class="fas fa-user-plus me-2"></i>Add New User
-            </button>
+            <div>
+                <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#exportModal">
+                    <i class="fas fa-download me-2"></i>Export
+                </button>
+                <button class="btn add-user-btn" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    <i class="fas fa-user-plus me-2"></i>Add New User
+                </button>
+            </div>
         </div>
 
         <!-- Users Grid -->
@@ -518,6 +523,51 @@ $users = $conn->query("
         </div>
     </div>
     <?php endforeach; ?>
+
+    <!-- Export Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Export Users</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="exportForm" action="export_users.php" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Export Format</label>
+                            <select name="format" class="form-select" required>
+                                <option value="csv">CSV</option>
+                                <option value="excel">Excel</option>
+                                <option value="pdf">PDF</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">User Type</label>
+                            <select name="user_type" class="form-select">
+                                <option value="">All Users</option>
+                                <option value="customer">Customers</option>
+                                <option value="pharmacy">Pharmacies</option>
+                                <option value="admin">Admins</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status (for Pharmacies)</label>
+                            <select name="status" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="exportForm" class="btn btn-primary">Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

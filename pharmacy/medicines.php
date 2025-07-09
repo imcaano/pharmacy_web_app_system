@@ -160,6 +160,31 @@ if ($pharmacy) {
             background: #0b6e6e;
             color: #fff;
         }
+        .expert-medicine-card {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f5fafd 100%);
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(11, 110, 110, 0.10), 0 1.5px 4px rgba(0,0,0,0.04);
+            border: none;
+            transition: box-shadow 0.2s, transform 0.2s;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        .expert-medicine-card:hover {
+            box-shadow: 0 8px 32px rgba(11, 110, 110, 0.18), 0 3px 8px rgba(0,0,0,0.08);
+            transform: translateY(-2px) scale(1.01);
+            background: linear-gradient(135deg, #b2ebf2 0%, #e0f7fa 100%);
+        }
+        .expert-medicine-card .badge {
+            font-size: 1rem;
+            padding: 0.5em 1em;
+            border-radius: 12px;
+        }
+        .expert-medicine-card .fw-bold {
+            word-break: break-all;
+            white-space: normal;
+            font-size: 1.1rem;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -209,121 +234,31 @@ if ($pharmacy) {
                     <p class="text-muted">There are currently no medicines in your pharmacy. Click "Add Medicine" to get started.</p>
                 </div>
             <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table align-middle">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                                <th>Batch Source</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($medicines as $medicine): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($medicine['name']); ?></td>
-                                    <td><?php echo htmlspecialchars($medicine['category']); ?></td>
-                                    <td>$<?php echo number_format($medicine['price'], 2); ?></td>
-                                    <td><?php echo $medicine['stock_quantity']; ?></td>
-                                    <td>
-                                        <?php if ($medicine['status'] === 'active'): ?>
-                                            <span class="badge bg-success">Active</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-secondary">Inactive</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <div class="mb-1">
-                                            <small class="text-muted">Batch Source: <?php echo htmlspecialchars($medicine['batch_source_info'] ?? 'N/A'); ?></small>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <!-- Edit Button triggers modal -->
-                                        <button class="btn btn-sm btn-outline-primary me-1" title="Edit" data-bs-toggle="modal" data-bs-target="#editMedicineModal<?php echo $medicine['id']; ?>"><i class="fas fa-edit"></i></button>
-                                        <!-- Delete Button triggers modal -->
-                                        <button class="btn btn-sm btn-outline-danger" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteMedicineModal<?php echo $medicine['id']; ?>"><i class="fas fa-trash"></i></button>
-                                    </td>
-                                </tr>
-                                <!-- Edit Medicine Modal -->
-                                <div class="modal fade" id="editMedicineModal<?php echo $medicine['id']; ?>" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <form method="POST">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Edit Medicine</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <input type="hidden" name="medicine_id" value="<?php echo $medicine['id']; ?>">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Name</label>
-                                                        <input type="text" class="form-control" name="name" value="<?php echo htmlspecialchars($medicine['name']); ?>" required>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Category</label>
-                                                        <select class="form-select" name="category" required>
-                                                            <option value="Antibiotic" <?php if ($medicine['category'] === 'Antibiotic') echo 'selected'; ?>>Antibiotic</option>
-                                                            <option value="Analgesic" <?php if ($medicine['category'] === 'Analgesic') echo 'selected'; ?>>Analgesic</option>
-                                                            <option value="Antipyretic" <?php if ($medicine['category'] === 'Antipyretic') echo 'selected'; ?>>Antipyretic</option>
-                                                            <option value="Antiseptic" <?php if ($medicine['category'] === 'Antiseptic') echo 'selected'; ?>>Antiseptic</option>
-                                                            <option value="Antiviral" <?php if ($medicine['category'] === 'Antiviral') echo 'selected'; ?>>Antiviral</option>
-                                                            <option value="Vaccine" <?php if ($medicine['category'] === 'Vaccine') echo 'selected'; ?>>Vaccine</option>
-                                                            <option value="Supplement" <?php if ($medicine['category'] === 'Supplement') echo 'selected'; ?>>Supplement</option>
-                                                            <option value="Other" <?php if ($medicine['category'] === 'Other') echo 'selected'; ?>>Other</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Price</label>
-                                                        <input type="number" class="form-control" name="price" step="0.01" value="<?php echo $medicine['price']; ?>" required>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Stock Quantity</label>
-                                                        <input type="number" class="form-control" name="stock_quantity" value="<?php echo $medicine['stock_quantity']; ?>" required>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Status</label>
-                                                        <select class="form-select" name="status" required>
-                                                            <option value="active" <?php if ($medicine['status'] === 'active') echo 'selected'; ?>>Active</option>
-                                                            <option value="inactive" <?php if ($medicine['status'] === 'inactive') echo 'selected'; ?>>Inactive</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" name="edit_medicine" class="btn btn-primary">Save Changes</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
+                <!-- Medicines Grid -->
+                <div class="row g-4">
+                    <?php foreach ($medicines as $medicine): ?>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="expert-medicine-card p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0"><?php echo htmlspecialchars($medicine['name']); ?></h5>
+                                    <span class="badge bg-info fs-6"><?php echo htmlspecialchars($medicine['category']); ?></span>
                                 </div>
-                                <!-- Delete Medicine Modal -->
-                                <div class="modal fade" id="deleteMedicineModal<?php echo $medicine['id']; ?>" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <form method="POST">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Delete Medicine</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <input type="hidden" name="medicine_id" value="<?php echo $medicine['id']; ?>">
-                                                    <p>Are you sure you want to delete <strong><?php echo htmlspecialchars($medicine['name']); ?></strong>?</p>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" name="delete_medicine" class="btn btn-danger">Delete</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
+                                <div class="mb-2">
+                                    <i class="fas fa-dollar-sign me-2"></i>
+                                    $<?php echo number_format($medicine['price'], 2); ?>
                                 </div>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                                <div class="mb-2">
+                                    <i class="fas fa-box me-2"></i>
+                                    Stock: <?php echo $medicine['stock_quantity']; ?>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewMedicineModal<?php echo $medicine['id']; ?>">
+                                        <i class="fas fa-eye me-1"></i>View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             <?php endif; ?>
         </div>

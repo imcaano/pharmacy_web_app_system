@@ -72,16 +72,22 @@ $critical_stock_medicines = $conn->query("
 $orders_done = $conn->query("SELECT COUNT(*) FROM orders WHERE pharmacy_id = {$pharmacy['id']} AND status = 'completed'")->fetchColumn();
 $pending_orders = $conn->query("SELECT COUNT(*) FROM orders WHERE pharmacy_id = {$pharmacy['id']} AND status = 'pending'")->fetchColumn();
 $completed_payments = $conn->query("SELECT COUNT(*) FROM orders WHERE pharmacy_id = {$pharmacy['id']} AND payment_status = 'completed'")->fetchColumn();
-$monthly_orders = $conn->query("
-    SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count
-    FROM orders
-    WHERE pharmacy_id = {$pharmacy['id']}
-    GROUP BY month
-    ORDER BY month DESC
-    LIMIT 12
-")->fetchAll();
+// Fetch monthly orders and medicines for graph
+$monthly_orders = $conn->query("SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count FROM orders WHERE pharmacy_id = {$pharmacy['id']} GROUP BY month ORDER BY month ASC")->fetchAll(PDO::FETCH_KEY_PAIR);
+$monthly_medicines = $conn->query("SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count FROM medicines WHERE pharmacy_id = {$pharmacy['id']} GROUP BY month ORDER BY month ASC")->fetchAll(PDO::FETCH_KEY_PAIR);
+// Merge months for chart
+$all_months = array_unique(array_merge(array_keys($monthly_orders), array_keys($monthly_medicines)));
+sort($all_months);
+$order_counts = [];
+$medicine_counts = [];
+foreach ($all_months as $m) {
+    $order_counts[] = isset($monthly_orders[$m]) ? (int)$monthly_orders[$m] : 0;
+    $medicine_counts[] = isset($monthly_medicines[$m]) ? (int)$monthly_medicines[$m] : 0;
+}
 $trust_score = $pharmacy['trust_score'] ?? 100;
 $performance = $pharmacy['performance'] ?? 'Excellent';
+// Calculate total sales amount (sum of all order totals)
+$total_sales_amount = $conn->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE pharmacy_id = " . $pharmacy['id'])->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -172,6 +178,82 @@ $performance = $pharmacy['performance'] ?? 'Excellent';
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(11, 110, 110, 0.2);
         }
+        .dashboard-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2.5rem;
+            margin-bottom: 2.5rem;
+            justify-content: flex-start;
+        }
+        .summary-card {
+            flex: 1 1 260px;
+            background: linear-gradient(135deg, #e0f7fa 0%, #f5fafd 100%);
+            border-radius: 22px;
+            box-shadow: 0 6px 32px rgba(11, 110, 110, 0.13), 0 2px 8px rgba(0,0,0,0.06);
+            padding: 2.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            min-width: 260px;
+            min-height: 160px;
+            position: relative;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .summary-card .icon {
+            font-size: 2.6rem;
+            color: #0b6e6e;
+            margin-bottom: 0.7rem;
+        }
+        .summary-card .label {
+            font-size: 1.2rem;
+            color: #0b6e6e;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+        }
+        .summary-card .value {
+            font-size: 2.3rem;
+            font-weight: bold;
+            color: #0b6e6e;
+            letter-spacing: 1px;
+        }
+        .summary-card .percent {
+            font-size: 1.2rem;
+            color: #009688;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .summary-card .progress {
+            width: 100%;
+            height: 12px;
+            background: #e0f7fa;
+            border-radius: 8px;
+            margin-top: 0.7rem;
+            overflow: hidden;
+        }
+        .summary-card .progress-bar {
+            background: linear-gradient(90deg, #0b6e6e 60%, #009688 100%);
+            height: 100%;
+            border-radius: 8px;
+        }
+        .dashboard-graph {
+            background: #fff;
+            border-radius: 22px;
+            box-shadow: 0 6px 32px rgba(11, 110, 110, 0.13);
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+        }
+        .dashboard-section-title {
+            font-size: 1.4rem;
+            color: #0b6e6e;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+        .dashboard-divider {
+            border-top: 2px solid #e0f7fa;
+            margin: 2.5rem 0 2rem 0;
+        }
     </style>
 </head>
 <body>
@@ -213,6 +295,8 @@ $performance = $pharmacy['performance'] ?? 'Excellent';
         </div>
 
         <!-- Statistics Cards -->
+        <!-- REMOVE THIS BLOCK: Duplicate stat-cards and Total Revenue card -->
+        <!--
         <div class="row g-4 mb-4">
             <div class="col-md-3">
                 <div class="stat-card">
@@ -252,13 +336,16 @@ $performance = $pharmacy['performance'] ?? 'Excellent';
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted">Total Revenue</h6>
-                            <h3 class="mb-0">$<?php echo number_format($stats['total_revenue'], 2); ?></h3>
+                            <h3 class="mb-0">$
+                                <?php echo number_format($stats['total_revenue'], 2); ?>
+                            </h3>
                         </div>
                         <i class="fas fa-dollar-sign stat-icon"></i>
                     </div>
                 </div>
             </div>
         </div>
+        -->
 
         <!-- Critical Stock Alerts -->
         <?php if (!empty($critical_stock_medicines) || !empty($out_of_stock_medicines)): ?>
@@ -290,11 +377,39 @@ $performance = $pharmacy['performance'] ?? 'Excellent';
             </div>
         <?php endif; ?>
 
-        <!-- Recent Activity -->
+        <div class="dashboard-section-title">Key Metrics</div>
+        <div class="dashboard-summary">
+            <div class="summary-card">
+                <span class="icon"><i class="fas fa-pills"></i></span>
+                <span class="label">Total Medicines</span>
+                <span class="value"><?php echo $stats['total_medicines']; ?></span>
+            </div>
+            <div class="summary-card">
+                <span class="icon"><i class="fas fa-shopping-cart"></i></span>
+                <span class="label">Total Orders</span>
+                <span class="value"><?php echo $stats['total_orders']; ?></span>
+            </div>
+            <div class="summary-card">
+                <span class="icon"><i class="fas fa-clock"></i></span>
+                <span class="label">Pending Orders</span>
+                <span class="value"><?php echo $stats['pending_orders']; ?></span>
+            </div>
+            <div class="summary-card">
+                <span class="icon"><i class="fas fa-dollar-sign"></i></span>
+                <span class="label">Total Sales</span>
+                <span class="value">$<?php echo number_format($total_sales_amount, 2); ?></span>
+            </div>
+        </div>
+        <div class="dashboard-divider"></div>
+        <div class="dashboard-section-title">Monthly Trends</div>
+        <div class="dashboard-graph">
+            <canvas id="ordersChart" height="100"></canvas>
+        </div>
+        <div class="dashboard-divider"></div>
         <div class="row g-4">
             <div class="col-md-6">
+                <div class="dashboard-section-title">Recent Orders</div>
                 <div class="recent-activity">
-                    <h5><i class="fas fa-clock me-2"></i>Recent Orders</h5>
                     <?php if (empty($recent_orders)): ?>
                         <p class="text-muted">No recent orders</p>
                     <?php else: ?>
@@ -318,10 +433,8 @@ $performance = $pharmacy['performance'] ?? 'Excellent';
                 </div>
             </div>
             <div class="col-md-6">
+                <div class="dashboard-section-title">Inventory Management</div>
                 <div class="recent-activity">
-                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Inventory Management</h5>
-                    
-                    <!-- Out of Stock Medicines -->
                     <?php if (!empty($out_of_stock_medicines)): ?>
                         <div class="mb-3">
                             <h6 class="text-danger mb-2">
@@ -343,8 +456,6 @@ $performance = $pharmacy['performance'] ?? 'Excellent';
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
-
-                    <!-- Low Stock Medicines -->
                     <?php if (!empty($low_stock_medicines)): ?>
                         <div class="mb-3">
                             <h6 class="text-warning mb-2">
@@ -368,51 +479,9 @@ $performance = $pharmacy['performance'] ?? 'Excellent';
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
-
                     <?php if (empty($low_stock_medicines) && empty($out_of_stock_medicines)): ?>
                         <p class="text-muted">All medicines are well stocked</p>
                     <?php endif; ?>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card p-3 text-center">
-                    <h6>Orders Done</h6>
-                    <h3><?php echo $orders_done; ?></h3>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card p-3 text-center">
-                    <h6>Pending Orders</h6>
-                    <h3><?php echo $pending_orders; ?></h3>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card p-3 text-center">
-                    <h6>Completed Payments</h6>
-                    <h3><?php echo $completed_payments; ?></h3>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card p-3 text-center">
-                    <h6>Trust Score</h6>
-                    <h3><?php echo $trust_score; ?>%</h3>
-                </div>
-            </div>
-        </div>
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card p-3">
-                    <h6>Monthly Orders</h6>
-                    <canvas id="ordersChart"></canvas>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card p-3">
-                    <h6>Performance</h6>
-                    <h3><?php echo htmlspecialchars($performance); ?></h3>
                 </div>
             </div>
         </div>
@@ -422,23 +491,81 @@ $performance = $pharmacy['performance'] ?? 'Excellent';
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
     const ctx = document.getElementById('ordersChart').getContext('2d');
+    const months = <?php echo json_encode($all_months); ?>;
+    const orderCounts = <?php echo json_encode($order_counts); ?>;
+    const medicineCounts = <?php echo json_encode($medicine_counts); ?>;
     new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
-            labels: <?php echo json_encode(array_column(array_reverse($monthly_orders), 'month')); ?>,
+            labels: months,
+            datasets: [
+                {
+                    label: 'Orders',
+                    data: orderCounts,
+                    backgroundColor: 'rgba(11, 110, 110, 0.5)',
+                    borderColor: '#0b6e6e',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    yAxisID: 'y',
+                    type: 'bar',
+                },
+                {
+                    label: 'New Medicines',
+                    data: medicineCounts,
+                    borderColor: '#009688',
+                    backgroundColor: 'rgba(0,150,136,0.12)',
+                    borderWidth: 3,
+        <div class="dashboard-summary">
+            <div class="summary-card">
+                <span class="icon"><i class="fas fa-pills"></i></span>
+                <span class="label">Total Medicines</span>
+                <span class="value"><?php echo $stats['total_medicines']; ?></span>
+            </div>
+            <div class="summary-card">
+                <span class="icon"><i class="fas fa-shopping-cart"></i></span>
+                <span class="label">Total Orders</span>
+                <span class="value"><?php echo $stats['total_orders']; ?></span>
+            </div>
+            <div class="summary-card">
+                <span class="icon"><i class="fas fa-clock"></i></span>
+                <span class="label">Pending Orders</span>
+                <span class="value"><?php echo $stats['pending_orders']; ?></span>
+            </div>
+        </div>
+        <div class="dashboard-graph">
+            <div class="dashboard-section-title">Monthly Orders</div>
+            <canvas id="ordersChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    const ctx = document.getElementById('ordersChart').getContext('2d');
+    const months = <?php echo json_encode(array_keys($monthly_orders)); ?>;
+    const counts = <?php echo json_encode(array_values($monthly_orders)); ?>;
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: months,
             datasets: [{
                 label: 'Orders',
-                data: <?php echo json_encode(array_column(array_reverse($monthly_orders), 'count')); ?>,
-                borderColor: '#7c3aed',
-                backgroundColor: 'rgba(124,58,237,0.1)',
-                tension: 0.4,
-                fill: true
+                data: counts,
+                backgroundColor: 'rgba(11, 110, 110, 0.5)',
+                borderColor: '#0b6e6e',
+                borderWidth: 2,
+                borderRadius: 8,
             }]
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } }
+            plugins: {
+                legend: { display: false },
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, grid: { color: '#e0f7fa' } }
+            }
         }
     });
     </script>

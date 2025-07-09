@@ -303,6 +303,31 @@ $medicines = $conn->query("
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(11, 110, 110, 0.2);
         }
+        .expert-medicine-card {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f5fafd 100%);
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(11, 110, 110, 0.10), 0 1.5px 4px rgba(0,0,0,0.04);
+            border: none;
+            transition: box-shadow 0.2s, transform 0.2s;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        .expert-medicine-card:hover {
+            box-shadow: 0 8px 32px rgba(11, 110, 110, 0.18), 0 3px 8px rgba(0,0,0,0.08);
+            transform: translateY(-2px) scale(1.01);
+            background: linear-gradient(135deg, #b2ebf2 0%, #e0f7fa 100%);
+        }
+        .expert-medicine-card .badge {
+            font-size: 1rem;
+            padding: 0.5em 1em;
+            border-radius: 12px;
+        }
+        .expert-medicine-card .fw-bold {
+            word-break: break-all;
+            white-space: normal;
+            font-size: 1.1rem;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -350,6 +375,9 @@ $medicines = $conn->query("
                 <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#filterModal">
                     <i class="fas fa-filter me-2"></i>Filter
                 </button>
+                <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#exportModal">
+                    <i class="fas fa-download me-2"></i>Export
+                </button>
                 <button class="btn add-medicine-btn" data-bs-toggle="modal" data-bs-target="#addMedicineModal">
                     <i class="fas fa-plus me-2"></i>Add New Medicine
                 </button>
@@ -360,63 +388,27 @@ $medicines = $conn->query("
         <div class="row g-4">
             <?php foreach ($medicines as $medicine): ?>
                 <div class="col-md-6 col-lg-4">
-                    <div class="medicine-card">
-                        <div class="medicine-image">
-                            <!-- No image is displayed for medicines -->
+                    <div class="expert-medicine-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0"><?php echo htmlspecialchars($medicine['name']); ?></h5>
+                            <span class="badge bg-info fs-6"><?php echo htmlspecialchars($medicine['category']); ?></span>
                         </div>
-                        <?php
-                        $stockBadgeClass = '';
-                        $stockText = '';
-                        if ($medicine['stock_quantity'] > 10) {
-                            $stockBadgeClass = 'in-stock';
-                            $stockText = 'In Stock';
-                        } elseif ($medicine['stock_quantity'] > 0) {
-                            $stockBadgeClass = 'low-stock';
-                            $stockText = 'Low Stock';
-                        } else {
-                            $stockBadgeClass = 'out-of-stock';
-                            $stockText = 'Out of Stock';
-                        }
-                        ?>
-                        <span class="stock-badge <?php echo $stockBadgeClass; ?>">
-                            <?php echo $stockText; ?>
-                            </span>
-                        <div class="medicine-info">
-                            <h5 class="medicine-name"><?php echo htmlspecialchars($medicine['name']); ?></h5>
-                            <p>
-                                <i class="fas fa-tag"></i>
-                                <?php echo htmlspecialchars($medicine['category']); ?>
-                            </p>
-                            <p>
-                                <i class="fas fa-clinic-medical"></i>
-                                <?php echo htmlspecialchars($medicine['pharmacy_name']); ?>
-                            </p>
-                            <p>
-                                <i class="fas fa-industry"></i>
-                                <?php echo htmlspecialchars($medicine['manufacturer']); ?>
-                            </p>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="medicine-price">$<?php echo number_format($medicine['price'], 2); ?></span>
-                                <small class="text-muted"><?php echo $medicine['stock_quantity']; ?> units left</small>
+                        <div class="mb-2">
+                            <i class="fas fa-clinic-medical me-2"></i>
+                            <span class="fw-bold"><?php echo htmlspecialchars($medicine['pharmacy_name']); ?></span>
                         </div>
-                            <div class="medicine-meta">
-                                <small>
-                                    <i class="fas fa-clock"></i>
-                                    Added: <?php echo date('M d, Y', strtotime($medicine['created_at'])); ?>
-                            </small>
-                            <div class="btn-group">
-                                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editMedicineModal<?php echo $medicine['id']; ?>">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                    <form method="POST" class="d-inline delete-medicine-form">
-                                        <input type="hidden" name="delete_medicine" value="1">
-                                    <input type="hidden" name="medicine_id" value="<?php echo $medicine['id']; ?>">
-                                        <button type="submit" class="btn btn-outline-danger">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
+                        <div class="mb-2">
+                            <i class="fas fa-dollar-sign me-2"></i>
+                            $<?php echo number_format($medicine['price'], 2); ?>
                         </div>
+                        <div class="mb-2">
+                            <i class="fas fa-box me-2"></i>
+                            Stock: <?php echo $medicine['stock_quantity']; ?>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewMedicineModal<?php echo $medicine['id']; ?>">
+                                <i class="fas fa-eye me-1"></i>View Details
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -618,6 +610,66 @@ $medicines = $conn->query("
         </div>
     </div>
     <?php endforeach; ?>
+
+    <!-- Export Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Export Medicines</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="exportForm" action="export_medicines.php" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Export Format</label>
+                            <select name="format" class="form-select" required>
+                                <option value="csv">CSV</option>
+                                <option value="excel">Excel</option>
+                                <option value="pdf">PDF</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select name="category" class="form-select">
+                                <option value="">All Categories</option>
+                                <?php
+                                $categories = $conn->query("SELECT DISTINCT category FROM medicines ORDER BY category")->fetchAll();
+                                foreach ($categories as $cat) {
+                                    echo "<option value='" . htmlspecialchars($cat['category']) . "'>" . htmlspecialchars($cat['category']) . "</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Pharmacy</label>
+                            <select name="pharmacy_id" class="form-select">
+                                <option value="">All Pharmacies</option>
+                                <?php foreach ($pharmacies as $pharmacy): ?>
+                                    <option value="<?php echo $pharmacy['id']; ?>">
+                                        <?php echo htmlspecialchars($pharmacy['pharmacy_name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Stock Status</label>
+                            <select name="stock_status" class="form-select">
+                                <option value="">All</option>
+                                <option value="in_stock">In Stock (>10)</option>
+                                <option value="low_stock">Low Stock (1-10)</option>
+                                <option value="out_of_stock">Out of Stock (0)</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="exportForm" class="btn btn-primary">Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

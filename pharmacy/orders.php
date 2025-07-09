@@ -59,10 +59,113 @@ if (isset($_POST['update_status'])) {
     }
 }
 
+// --- Export Orders Logic ---
+if (isset($_POST['export_orders'])) {
+    $format = $_POST['export_format'] ?? 'csv';
+    $date_from = $_POST['date_from'] ?? '';
+    $date_to = $_POST['date_to'] ?? '';
+    $include_items = isset($_POST['include_items']);
+    $where = "WHERE o.pharmacy_id = {$pharmacy['id']}";
+    $params = [];
+    if ($date_from) {
+        $where .= " AND o.created_at >= ?";
+        $params[] = $date_from . ' 00:00:00';
+    }
+    if ($date_to) {
+        $where .= " AND o.created_at <= ?";
+        $params[] = $date_to . ' 23:59:59';
+    }
+    $sql = "SELECT o.*, u.metamask_address as customer_metamask, u.email as customer_email FROM orders o JOIN users u ON o.customer_id = u.id $where ORDER BY o.created_at DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute($params);
+    $orders_export = $stmt->fetchAll();
+    if ($format === 'csv') {
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="orders_export.csv"');
+        $out = fopen('php://output', 'w');
+        $header = ['Order ID', 'Customer Metamask', 'Order Date', 'Status', 'Total Amount'];
+        if ($include_items) $header[] = 'Order Items';
+        fputcsv($out, $header);
+        foreach ($orders_export as $order) {
+            $row = [
+                $order['id'],
+                $order['customer_metamask'] ?: $order['customer_email'],
+                $order['created_at'],
+                $order['status'],
+                $order['total_amount']
+            ];
+            if ($include_items) {
+                $items = $conn->query("SELECT m.name, oi.quantity FROM order_items oi JOIN medicines m ON oi.medicine_id = m.id WHERE oi.order_id = " . $order['id'])->fetchAll();
+                $item_strs = [];
+                foreach ($items as $item) {
+                    $item_strs[] = $item['name'] . ' (x' . $item['quantity'] . ')';
+                }
+                $row[] = implode('; ', $item_strs);
+            }
+            fputcsv($out, $row);
+        }
+        fclose($out);
+        exit();
+    } elseif ($format === 'excel') {
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment; filename="orders_export.xls"');
+        echo "<table border='1'><tr><th>Order ID</th><th>Customer Metamask</th><th>Order Date</th><th>Status</th><th>Total Amount</th>";
+        if ($include_items) echo "<th>Order Items</th>";
+        echo "</tr>";
+        foreach ($orders_export as $order) {
+            echo "<tr>";
+            echo "<td>{$order['id']}</td>";
+            echo "<td>" . ($order['customer_metamask'] ?: $order['customer_email']) . "</td>";
+            echo "<td>{$order['created_at']}</td>";
+            echo "<td>{$order['status']}</td>";
+            echo "<td>{$order['total_amount']}</td>";
+            if ($include_items) {
+                $items = $conn->query("SELECT m.name, oi.quantity FROM order_items oi JOIN medicines m ON oi.medicine_id = m.id WHERE oi.order_id = " . $order['id'])->fetchAll();
+                $item_strs = [];
+                foreach ($items as $item) {
+                    $item_strs[] = $item['name'] . ' (x' . $item['quantity'] . ')';
+                }
+                echo "<td>" . implode('; ', $item_strs) . "</td>";
+            }
+            echo "</tr>";
+        }
+        echo "</table>";
+        exit();
+    } elseif ($format === 'pdf') {
+        require_once '../vendor/autoload.php';
+        $mpdf = new \Mpdf\Mpdf();
+        $html = '<h2>Orders Export</h2><table border="1" cellpadding="6"><tr><th>Order ID</th><th>Customer Metamask</th><th>Order Date</th><th>Status</th><th>Total Amount</th>';
+        if ($include_items) $html .= '<th>Order Items</th>';
+        $html .= '</tr>';
+        foreach ($orders_export as $order) {
+            $html .= '<tr>';
+            $html .= '<td>' . $order['id'] . '</td>';
+            $html .= '<td>' . ($order['customer_metamask'] ?: $order['customer_email']) . '</td>';
+            $html .= '<td>' . $order['created_at'] . '</td>';
+            $html .= '<td>' . $order['status'] . '</td>';
+            $html .= '<td>' . $order['total_amount'] . '</td>';
+            if ($include_items) {
+                $items = $conn->query("SELECT m.name, oi.quantity FROM order_items oi JOIN medicines m ON oi.medicine_id = m.id WHERE oi.order_id = " . $order['id'])->fetchAll();
+                $item_strs = [];
+                foreach ($items as $item) {
+                    $item_strs[] = $item['name'] . ' (x' . $item['quantity'] . ')';
+                }
+                $html .= '<td>' . implode('; ', $item_strs) . '</td>';
+            }
+            $html .= '</tr>';
+        }
+        $html .= '</table>';
+        $mpdf->WriteHTML($html);
+        $mpdf->Output('orders_export.pdf', 'D');
+        exit();
+    }
+}
+
 // Get all orders for this pharmacy
 $orders = $conn->query("
     SELECT o.*, 
            u.email as customer_email,
+           u.metamask_address as customer_metamask,
            pr.doctor_name,
            pr.prescription_file
     FROM orders o 
@@ -164,6 +267,31 @@ $smart_payments = $smart_payments->fetchAll();
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(11, 110, 110, 0.2);
         }
+        .expert-order-card {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f5fafd 100%);
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(11, 110, 110, 0.10), 0 1.5px 4px rgba(0,0,0,0.04);
+            border: none;
+            transition: box-shadow 0.2s, transform 0.2s;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        .expert-order-card:hover {
+            box-shadow: 0 8px 32px rgba(11, 110, 110, 0.18), 0 3px 8px rgba(0,0,0,0.08);
+            transform: translateY(-2px) scale(1.01);
+            background: linear-gradient(135deg, #b2ebf2 0%, #e0f7fa 100%);
+        }
+        .expert-order-card .badge {
+            font-size: 1rem;
+            padding: 0.5em 1em;
+            border-radius: 12px;
+        }
+        .expert-order-card .fw-bold {
+            word-break: break-all;
+            white-space: normal;
+            font-size: 1.1rem;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -213,9 +341,6 @@ $smart_payments = $smart_payments->fetchAll();
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 style="color: #0b6e6e;">Manage Orders</h2>
             <div>
-                <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#filterModal">
-                    <i class="fas fa-filter me-2"></i>Filter
-                </button>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
                     <i class="fas fa-download me-2"></i>Export
                 </button>
@@ -242,133 +367,91 @@ $smart_payments = $smart_payments->fetchAll();
                             </div>
                         </div>
                     <?php endif; ?>
-                    <?php foreach ($orders as $order): ?>
-                        <div class="col-md-6 col-lg-4">
-                            <div class="order-card p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h5 class="mb-1">Order #<?php echo $order['id']; ?></h5>
-                                        <p class="text-muted mb-0">
-                                            <i class="fas fa-user me-2"></i><?php echo $order['customer_email']; ?>
-                                        </p>
-                                    </div>
-                                    <span class="status-badge status-<?php echo $order['status']; ?>">
-                                        <?php echo ucfirst($order['status']); ?>
-                                    </span>
-                                </div>
-                                <div class="mb-3">
-                                    <p class="mb-1">
-                                        <i class="fas fa-dollar-sign me-2"></i><?php echo number_format($order['total_amount'], 2); ?>
-                                    </p>
-                                    <?php if ($order['prescription_id']): ?>
-                                        <p class="mb-1">
-                                            <i class="fas fa-file-medical me-2"></i>Dr. <?php echo $order['doctor_name']; ?>
-                                        </p>
-                                    <?php endif; ?>
-                                    <p class="mb-1">
-                                        <i class="fas fa-clock me-2"></i><?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?>
-                                    </p>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewOrderModal<?php echo $order['id']; ?>">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <?php if ($order['status'] === 'pending'): ?>
-                                            <form method="POST" class="d-inline">
-                                                <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                                                <input type="hidden" name="new_status" value="approved">
-                                                <button type="submit" name="update_status" class="btn btn-success btn-sm">
-                                                    <i class="fas fa-check"></i> Approve
-                                                </button>
-                                            </form>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
+                    <?php foreach (
+    $orders as $order): ?>
+    <div class="col-md-6 col-lg-4">
+        <div class="expert-order-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">#<?php echo $order['id']; ?></h5>
+                <span class="badge bg-success fs-6"><?php echo ucfirst($order['status']); ?></span>
+            </div>
+            <div class="mb-2">
+                <i class="fas fa-wallet me-2"></i>
+                <span class="fw-bold"><?php echo htmlspecialchars($order['customer_metamask'] ?? $order['customer_email']); ?></span>
+            </div>
+            <div class="mb-2">
+                <i class="fas fa-calendar me-2"></i>
+                <?php echo date('M d, Y', strtotime($order['created_at'])); ?>
+            </div>
+            <div class="mb-2">
+                <i class="fas fa-dollar-sign me-2"></i>
+                $<?php echo number_format($order['total_amount'], 2); ?>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewOrderModal<?php echo $order['id']; ?>">
+                    <i class="fas fa-eye me-1"></i>View Details
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- View Order Modal -->
+    <div class="modal fade" id="viewOrderModal<?php echo $order['id']; ?>" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Order Details #<?php echo $order['id']; ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Customer Information</h6>
+                            <p class="mb-1">Metamask: <?php echo $order['customer_metamask'] ?? $order['customer_email']; ?></p>
+                            <p class="mb-1">Order Date: <?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?></p>
                         </div>
-
-                        <!-- View Order Modal -->
-                        <div class="modal fade" id="viewOrderModal<?php echo $order['id']; ?>" tabindex="-1">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Order Details #<?php echo $order['id']; ?></h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="row mb-4">
-                                            <div class="col-md-6">
-                                                <h6>Customer Information</h6>
-                                                <p class="mb-1">Email: <?php echo $order['customer_email']; ?></p>
-                                                <p class="mb-1">Order Date: <?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <h6>Order Information</h6>
-                                                <p class="mb-1">Status: <?php echo ucfirst($order['status']); ?></p>
-                                                <p class="mb-1">Total Amount: $<?php echo number_format($order['total_amount'], 2); ?></p>
-                                            </div>
-                                        </div>
-                                        <h6>Order Items</h6>
-                                        <div class="table-responsive">
-                                            <table class="table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Medicine</th>
-                                                        <th>Quantity</th>
-                                                        <th>Price</th>
-                                                        <th>Total</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php
-                                                    $items = $conn->query("
-                                                        SELECT oi.*, m.name as medicine_name 
-                                                        FROM order_items oi 
-                                                        JOIN medicines m ON oi.medicine_id = m.id 
-                                                        WHERE oi.order_id = " . $order['id']
-                                                    )->fetchAll();
-                                                    foreach ($items as $item):
-                                                    ?>
-                                                        <tr>
-                                                            <td><?php echo $item['medicine_name']; ?></td>
-                                                            <td><?php echo $item['quantity']; ?></td>
-                                                            <td>$<?php echo number_format($item['price'], 2); ?></td>
-                                                            <td>$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
-                                                        </tr>
-                                                    <?php endforeach; ?>
-                                                </tbody>
-                                                <tfoot>
-                                                    <tr>
-                                                        <td colspan="3" class="text-end"><strong>Total Amount:</strong></td>
-                                                        <td><strong>$<?php echo number_format($order['total_amount'], 2); ?></strong></td>
-                                                    </tr>
-                                                </tfoot>
-                                            </table>
-                                        </div>
-                                        <?php if (!empty($order['prescription_id'])): ?>
-                                            <?php
-                                            $presc = $conn->prepare("SELECT prescription_file FROM prescriptions WHERE id = ?");
-                                            $presc->execute([$order['prescription_id']]);
-                                            $prescFile = $presc->fetchColumn();
-                                            if ($prescFile): ?>
-                                                <div class="mb-3">
-                                                    <strong>Prescription File:</strong>
-                                                    <a href="../uploads/prescriptions/<?php echo htmlspecialchars($prescFile); ?>" target="_blank" class="btn btn-outline-info btn-sm ms-2">
-                                                        <i class="fas fa-file-download"></i> View Prescription
-                                                    </a>
-                                                </div>
-                                            <?php endif; ?>
-                                        <?php endif; ?>
-                                        <button class="btn btn-outline-primary mt-3" onclick="signOrderWithWallet(<?php echo $order['id']; ?>)">
-                                            <i class="fab fa-ethereum"></i> Sign with Wallet
-                                        </button>
-                                        <div id="signResult<?php echo $order['id']; ?>" class="mt-2"></div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="col-md-6">
+                            <h6>Order Information</h6>
+                            <p class="mb-1">Status: <?php echo ucfirst($order['status']); ?></p>
+                            <p class="mb-1">Total Amount: $<?php echo number_format($order['total_amount'], 2); ?></p>
                         </div>
-                    <?php endforeach; ?>
+                    </div>
+                    <h6>Order Items</h6>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Medicine</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $items = $conn->query("SELECT oi.*, m.name as medicine_name FROM order_items oi JOIN medicines m ON oi.medicine_id = m.id WHERE oi.order_id = " . $order['id'])->fetchAll();
+                                foreach ($items as $item):
+                                ?>
+                                    <tr>
+                                        <td><?php echo $item['medicine_name']; ?></td>
+                                        <td><?php echo $item['quantity']; ?></td>
+                                        <td>$<?php echo number_format($item['price'], 2); ?></td>
+                                        <td>$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total Amount:</strong></td>
+                                    <td><strong>$<?php echo number_format($order['total_amount'], 2); ?></strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endforeach; ?>
                 </div>
             </div>
             <div class="tab-pane fade" id="payments" role="tabpanel">
@@ -436,72 +519,19 @@ $smart_payments = $smart_payments->fetchAll();
         </div>
     </div>
 
-    <!-- Filter Modal -->
-    <div class="modal fade" id="filterModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Filter Orders</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="filterForm">
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select class="form-select">
-                                <option value="">All Statuses</option>
-                                <option value="pending">Pending</option>
-                                <option value="approved">Approved</option>
-                                <option value="rejected">Rejected</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Date Range</label>
-                            <div class="row">
-                                <div class="col">
-                                    <input type="date" class="form-control" placeholder="From">
-                                </div>
-                                <div class="col">
-                                    <input type="date" class="form-control" placeholder="To">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Amount Range</label>
-                            <div class="row">
-                                <div class="col">
-                                    <input type="number" class="form-control" placeholder="Min">
-                                </div>
-                                <div class="col">
-                                    <input type="number" class="form-control" placeholder="Max">
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="filterForm" class="btn btn-primary">Apply Filters</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Export Modal -->
     <div class="modal fade" id="exportModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Export Orders</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="exportForm">
+                <form method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Export Orders</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Export Format</label>
-                            <select class="form-select">
+                            <select class="form-select" name="export_format">
                                 <option value="csv">CSV</option>
                                 <option value="excel">Excel</option>
                                 <option value="pdf">PDF</option>
@@ -511,25 +541,25 @@ $smart_payments = $smart_payments->fetchAll();
                             <label class="form-label">Date Range</label>
                             <div class="row">
                                 <div class="col">
-                                    <input type="date" class="form-control" placeholder="From">
+                                    <input type="date" class="form-control" name="date_from" placeholder="From">
                                 </div>
                                 <div class="col">
-                                    <input type="date" class="form-control" placeholder="To">
+                                    <input type="date" class="form-control" name="date_to" placeholder="To">
                                 </div>
                             </div>
                         </div>
                         <div class="mb-3">
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input" id="includeItems">
+                                <input type="checkbox" class="form-check-input" id="includeItems" name="include_items">
                                 <label class="form-check-label" for="includeItems">Include Order Items</label>
                             </div>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="exportForm" class="btn btn-primary">Export</button>
-                </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="export_orders" class="btn btn-primary">Export</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

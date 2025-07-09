@@ -413,10 +413,10 @@ $orders = $orders->fetchAll();
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="exportForm">
+                    <form id="exportForm" action="export_orders.php" method="POST">
                         <div class="mb-3">
                             <label class="form-label">Export Format</label>
-                            <select class="form-select">
+                            <select name="format" class="form-select" required>
                                 <option value="csv">CSV</option>
                                 <option value="excel">Excel</option>
                                 <option value="pdf">PDF</option>
@@ -426,16 +426,16 @@ $orders = $orders->fetchAll();
                             <label class="form-label">Date Range</label>
                             <div class="row">
                                 <div class="col">
-                                    <input type="date" class="form-control" placeholder="From">
+                                    <input type="date" name="date_from" class="form-control" placeholder="From">
                                 </div>
                                 <div class="col">
-                                    <input type="date" class="form-control" placeholder="To">
+                                    <input type="date" name="date_to" class="form-control" placeholder="To">
                                 </div>
                             </div>
                         </div>
                         <div class="mb-3">
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input" id="includeItems">
+                                <input type="checkbox" name="include_items" class="form-check-input" id="includeItems" value="1">
                                 <label class="form-check-label" for="includeItems">Include Order Items</label>
                             </div>
                         </div>
