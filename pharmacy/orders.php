@@ -391,6 +391,23 @@ $smart_payments = $smart_payments->fetchAll();
                 <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewOrderModal<?php echo $order['id']; ?>">
                     <i class="fas fa-eye me-1"></i>View Details
                 </button>
+                <?php if (!in_array($order['status'], ['completed', 'rejected', 'cancelled'])): ?>
+                    <form method="POST" class="d-inline">
+                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                        <input type="hidden" name="new_status" value="approved">
+                        <button type="submit" name="update_status" class="btn btn-success btn-sm ms-1">Approve</button>
+                    </form>
+                    <form method="POST" class="d-inline">
+                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                        <input type="hidden" name="new_status" value="pending">
+                        <button type="submit" name="update_status" class="btn btn-warning btn-sm ms-1">Set Pending</button>
+                    </form>
+                    <form method="POST" class="d-inline">
+                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                        <input type="hidden" name="new_status" value="rejected">
+                        <button type="submit" name="update_status" class="btn btn-danger btn-sm ms-1">Reject</button>
+                    </form>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -447,6 +464,24 @@ $smart_payments = $smart_payments->fetchAll();
                             </tfoot>
                         </table>
                     </div>
+                    <?php if (!in_array($order['status'], ['completed', 'rejected', 'cancelled'])): ?>
+                        <form method="POST" class="mt-3">
+                            <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                            <div class="d-flex gap-2">
+                                <button type="submit" name="update_status" value="approved" class="btn btn-success">Approve</button>
+                                <button type="submit" name="update_status" value="pending" class="btn btn-warning">Set Pending</button>
+                                <button type="submit" name="update_status" value="rejected" class="btn btn-danger">Reject</button>
+                            </div>
+                            <input type="hidden" name="new_status" id="newStatusInput<?php echo $order['id']; ?>">
+                        </form>
+                        <script>
+                        document.querySelectorAll('form[method="POST"] button[type="submit"]').forEach(btn => {
+                            btn.addEventListener('click', function(e) {
+                                this.form.querySelector('input[name="new_status"]').value = this.value;
+                            });
+                        });
+                        </script>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

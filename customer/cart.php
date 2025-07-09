@@ -205,7 +205,7 @@ foreach ($cart_items as $item) {
             <a href="profile.php" class="nav-link">
                 <i class="fas fa-user me-2"></i> Profile
             </a>
-            <a href="../logout.php" class="nav-link text-danger mt-5">
+            <a href="../logout.php" class="nav-link" style="background-color: #0b6e6e; color: white;">
                 <i class="fas fa-sign-out-alt me-2"></i> Logout
             </a>
         </nav>
@@ -323,11 +323,27 @@ foreach ($cart_items as $item) {
                         <strong>Total:</strong> $<?php echo number_format($total, 2); ?>
                         <span id="ethAmount" class="ms-3"></span>
                     </div>
-                    <button class="btn btn-primary" type="button" onclick="payAndCreateOrder()">
-                        <i class="fab fa-ethereum me-2"></i>Pay & Place Order
-                    </button>
+                    <div class="mb-3">
+                        <label class="form-label">Choose Payment Method:</label><br>
+                        <button class="btn btn-primary me-2" type="button" onclick="payAndCreateOrder()">
+                            <i class="fab fa-ethereum me-2"></i>Pay with MetaMask
+                        </button>
+                        <button class="btn btn-success" type="button" onclick="showHormuudInstructions()">
+                            <i class="fas fa-mobile-alt me-2"></i>Pay with Hormuud USSD
+                        </button>
+                    </div>
+                    <div id="hormuudInstructions" style="display:none;" class="alert alert-info mt-3">
+                        <h5>Hormuud USSD Payment</h5>
+                        <ol>
+                            <li>Your order will be placed as <b>pending</b>.</li>
+                            <li>Dial <b>*000#</b> on your Hormuud line.</li>
+                            <li>Follow the prompts to complete your payment.</li>
+                            <li>Once payment is confirmed, your order will be marked as <b>paid</b>.</li>
+                        </ol>
+                        <button class="btn btn-success" type="button" onclick="placeHormuudOrder()">Place Order & Show USSD Steps</button>
+                    </div>
+                    <div id="paymentResult" class="mt-2"></div>
                 </div>
-                <div id="paymentResult" class="mt-2"></div>
             <?php endif; ?>
         </div>
     </div>
@@ -415,6 +431,47 @@ foreach ($cart_items as $item) {
             }
         } else {
             document.getElementById('paymentResult').innerHTML = '<span class="text-danger">Payment failed: ' + (result.error || 'Unknown error') + '</span>';
+        }
+    }
+
+    function showHormuudInstructions() {
+        document.getElementById('hormuudInstructions').style.display = 'block';
+    }
+    async function placeHormuudOrder() {
+        // Optionally handle prescription upload first
+        let prescriptionId = null;
+        if (<?php echo $requires_prescription ? 'true' : 'false'; ?>) {
+            const fileInput = document.getElementById('prescriptionFile');
+            if (!fileInput.files.length) {
+                alert('Please upload a prescription file.');
+                return;
+            }
+            const formData = new FormData(document.getElementById('prescriptionForm'));
+            const uploadResp = await fetch('upload_prescription_ajax.php', { method: 'POST', body: formData });
+            const uploadData = await uploadResp.json();
+            if (!uploadData.success) {
+                document.getElementById('paymentResult').innerHTML = '<span class="text-danger">Prescription upload failed: ' + (uploadData.error || 'Unknown error') + '</span>';
+                return;
+            }
+            prescriptionId = uploadData.prescription_id;
+        }
+        // Place order as pending with Hormuud
+        const response = await fetch('create_order.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                payment_method: 'hormuud',
+                amount: <?php echo json_encode($total); ?>,
+                cart: <?php echo json_encode($cart_items); ?>,
+                prescription_id: prescriptionId
+            })
+        });
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById('paymentResult').innerHTML = '<span class="text-success">Order placed as pending. Please dial <b>*000#</b> on your Hormuud line to complete payment.</span>';
+            setTimeout(() => { window.location.href = 'orders.php?success=1'; }, 3000);
+        } else {
+            document.getElementById('paymentResult').innerHTML = '<span class="text-danger">Order failed: ' + (data.error || 'Unknown error') + '</span>';
         }
     }
     </script>

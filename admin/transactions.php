@@ -86,6 +86,7 @@ $transactions = $conn->query("
                         <th>Patient</th>
                         <th>Status</th>
                         <th>Amount</th>
+                        <th>Tx Hash</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -103,6 +104,15 @@ $transactions = $conn->query("
                                 </span>
                             </td>
                             <td>$<?php echo number_format($tx['total_amount'], 2); ?></td>
+                            <td>
+                                <?php if (!empty($tx['tx_hash'])): ?>
+                                    <span style="font-family:monospace;font-size:0.95em;word-break:break-all;">
+                                        <?php echo htmlspecialchars($tx['tx_hash']); ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="text-muted">N/A</span>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

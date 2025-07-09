@@ -205,6 +205,9 @@ $recent_prescriptions = $conn->query("
                     <div>
                         <div class="stat-value">$<?php echo number_format($stats['total_spent'], 2); ?></div>
                         <div class="text-muted">Total Spent</div>
+                        <?php if ((float)$stats['total_spent'] == 0): ?>
+                            <div class="text-muted small">No completed orders yet</div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

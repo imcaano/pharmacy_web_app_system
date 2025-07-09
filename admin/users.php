@@ -115,11 +115,11 @@ $users = $conn->query("
     <link href="../assets/css/theme.css" rel="stylesheet">
     <style>
         :root {
-            --primary: #004D40;
-            --primary-light: #00796B;
-            --primary-dark: #00251a;
-            --accent: #00897B;
-            --text-light: #B2DFDB;
+            --primary: #0b6e6e;
+            --primary-light: #0b6e6e;
+            --primary-dark: #0b6e6e;
+            --accent: #0b6e6e;
+            --text-light: #0b6e6e;
         }
 
         body {
@@ -129,9 +129,9 @@ $users = $conn->query("
         .user-card {
             background: white;
             border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0, 77, 64, 0.08);
+            box-shadow: 0 2px 12px rgba(11, 110, 110, 0.08);
             transition: all 0.3s ease;
-            border: 1px solid rgba(0, 77, 64, 0.1);
+            border: 1px solid rgba(11, 110, 110, 0.1);
             position: relative;
             overflow: hidden;
             height: 100%;
@@ -151,7 +151,7 @@ $users = $conn->query("
 
         .user-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 4px 20px rgba(0, 77, 64, 0.15);
+            box-shadow: 0 4px 20px rgba(11, 110, 110, 0.15);
             border-color: var(--primary-light);
         }
 

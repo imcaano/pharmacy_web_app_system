@@ -409,6 +409,13 @@ $medicines = $conn->query("
                             <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewMedicineModal<?php echo $medicine['id']; ?>">
                                 <i class="fas fa-eye me-1"></i>View Details
                             </a>
+                            <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editMedicineModal<?php echo $medicine['id']; ?>">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                            <form method="POST" class="d-inline delete-medicine-form" style="display:inline;">
+                                <input type="hidden" name="medicine_id" value="<?php echo $medicine['id']; ?>">
+                                <button type="submit" name="delete_medicine" class="btn btn-outline-danger"><i class="fas fa-trash me-1"></i>Delete</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -605,6 +612,36 @@ $medicines = $conn->query("
                             <button type="submit" name="update_medicine" class="btn btn-primary">Update Medicine</button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
+
+    <!-- View Details Modal for each medicine -->
+    <?php foreach ($medicines as $medicine): ?>
+    <div class="modal fade" id="viewMedicineModal<?php echo $medicine['id']; ?>" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Medicine Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Name:</strong> <?php echo htmlspecialchars($medicine['name']); ?></p>
+                    <p><strong>Pharmacy:</strong> <?php echo htmlspecialchars($medicine['pharmacy_name']); ?></p>
+                    <p><strong>Category:</strong> <?php echo htmlspecialchars($medicine['category']); ?></p>
+                    <p><strong>Manufacturer:</strong> <?php echo htmlspecialchars($medicine['manufacturer']); ?></p>
+                    <p><strong>Country of Origin:</strong> <?php echo htmlspecialchars($medicine['country_of_origin']); ?></p>
+                    <p><strong>Price:</strong> $<?php echo number_format($medicine['price'], 2); ?></p>
+                    <p><strong>Stock Quantity:</strong> <?php echo $medicine['stock_quantity']; ?></p>
+                    <p><strong>Expiry Date:</strong> <?php echo htmlspecialchars($medicine['expiry_date']); ?></p>
+                    <p><strong>Status:</strong> <?php echo $medicine['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?></p>
+                    <p><strong>Requires Prescription:</strong> <?php echo $medicine['requires_prescription'] ? 'Yes' : 'No'; ?></p>
+                    <p><strong>Batch Source Info:</strong> <?php echo htmlspecialchars($medicine['batch_source_info'] ?? ''); ?></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

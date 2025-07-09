@@ -494,6 +494,13 @@ $total_sales_amount = $conn->query("SELECT COALESCE(SUM(total_amount), 0) FROM o
     const months = <?php echo json_encode($all_months); ?>;
     const orderCounts = <?php echo json_encode($order_counts); ?>;
     const medicineCounts = <?php echo json_encode($medicine_counts); ?>;
+    // Limit chart data to last 6 months
+    const months_to_show = 6;
+    if (months.length > months_to_show) {
+        months.splice(0, months.length - months_to_show);
+        orderCounts.splice(0, orderCounts.length - months_to_show);
+        medicineCounts.splice(0, medicineCounts.length - months_to_show);
+    }
     new Chart(ctx, {
         type: 'bar',
         data: {

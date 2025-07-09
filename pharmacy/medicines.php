@@ -281,6 +281,15 @@ if ($pharmacy) {
                             <label class="form-label">Category</label>
                             <select class="form-select" name="category" required>
                                 <option value="Antibiotic">Antibiotic</option>
+                                <option value="Blood Pressure">Blood Pressure</option>
+                                <option value="Cardiac">Cardiac</option>
+                                <option value="Diabetes">Diabetes</option>
+                                <option value="Eye / Ear / Nose">Eye / Ear / Nose</option>
+                                <option value="Fungal (Antifungal)">Fungal (Antifungal)</option>
+                                <option value="Gastrointestinal">Gastrointestinal</option>
+                                <option value="Hormonal">Hormonal</option>
+                                <option value="Pain Reliever">Pain Reliever</option>
+                                <option value="Vitamins">Vitamins</option>
                                 <option value="Analgesic">Analgesic</option>
                                 <option value="Antipyretic">Antipyretic</option>
                                 <option value="Antiseptic">Antiseptic</option>
@@ -314,6 +323,29 @@ if ($pharmacy) {
             </div>
         </div>
     </div>
+    <?php foreach ($medicines as $medicine): ?>
+        <!-- View Details Modal for each medicine -->
+        <div class="modal fade" id="viewMedicineModal<?php echo $medicine['id']; ?>" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Medicine Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Name:</strong> <?php echo htmlspecialchars($medicine['name']); ?></p>
+                        <p><strong>Category:</strong> <?php echo htmlspecialchars($medicine['category']); ?></p>
+                        <p><strong>Price:</strong> $<?php echo number_format($medicine['price'], 2); ?></p>
+                        <p><strong>Stock Quantity:</strong> <?php echo $medicine['stock_quantity']; ?></p>
+                        <p><strong>Status:</strong> <?php echo ucfirst($medicine['status']); ?></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html> 

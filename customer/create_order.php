@@ -9,12 +9,13 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'customer') {
 }
 
 $data = json_decode(file_get_contents('php://input'), true);
-if (!$data || empty($data['txHash']) || empty($data['amount']) || empty($data['cart'])) {
+if (!$data || empty($data['amount']) || empty($data['cart'])) {
     echo json_encode(['success' => false, 'error' => 'Missing data']);
     exit();
 }
 
-$txHash = $data['txHash'];
+$payment_method = isset($data['payment_method']) ? $data['payment_method'] : 'metamask';
+$txHash = isset($data['txHash']) ? $data['txHash'] : null;
 $amount = $data['amount'];
 $cart = $data['cart'];
 $prescription_id = isset($data['prescription_id']) ? $data['prescription_id'] : null;
@@ -50,12 +51,14 @@ try {
     $order_ids = [];
     foreach ($pharmacy_orders as $pharmacy_id => $order) {
         // Create order for each pharmacy
+        $status = 'pending';
+        $txHashToStore = $payment_method === 'hormuud' ? null : $txHash;
         if ($prescription_id) {
-            $stmt = $conn->prepare("INSERT INTO orders (customer_id, pharmacy_id, total_amount, status, transaction_hash, prescription_id) VALUES (?, ?, ?, 'pending', ?, ?)");
-            $stmt->execute([$_SESSION['user_id'], $pharmacy_id, $order['total'], $txHash, $prescription_id]);
+            $stmt = $conn->prepare("INSERT INTO orders (customer_id, pharmacy_id, total_amount, status, transaction_hash, prescription_id, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$_SESSION['user_id'], $pharmacy_id, $order['total'], $status, $txHashToStore, $prescription_id, $payment_method]);
         } else {
-            $stmt = $conn->prepare("INSERT INTO orders (customer_id, pharmacy_id, total_amount, status, transaction_hash) VALUES (?, ?, ?, 'pending', ?)");
-            $stmt->execute([$_SESSION['user_id'], $pharmacy_id, $order['total'], $txHash]);
+            $stmt = $conn->prepare("INSERT INTO orders (customer_id, pharmacy_id, total_amount, status, transaction_hash, payment_method) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$_SESSION['user_id'], $pharmacy_id, $order['total'], $status, $txHashToStore, $payment_method]);
         }
         $order_id = $conn->lastInsertId();
         $order_ids[] = $order_id;
