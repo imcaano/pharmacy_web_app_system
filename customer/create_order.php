@@ -14,11 +14,12 @@ if (!$data || empty($data['amount']) || empty($data['cart'])) {
     exit();
 }
 
-$payment_method = isset($data['payment_method']) ? $data['payment_method'] : 'metamask';
+$payment_method = isset($data['payment_method']) ? $data['payment_method'] : 'blockchain';
 $txHash = isset($data['txHash']) ? $data['txHash'] : null;
 $amount = $data['amount'];
 $cart = $data['cart'];
 $prescription_id = isset($data['prescription_id']) ? $data['prescription_id'] : null;
+$phone_number = isset($data['phone']) ? $data['phone'] : null;
 
 try {
     $conn->beginTransaction();
@@ -54,11 +55,11 @@ try {
         $status = 'pending';
         $txHashToStore = $payment_method === 'hormuud' ? null : $txHash;
         if ($prescription_id) {
-            $stmt = $conn->prepare("INSERT INTO orders (customer_id, pharmacy_id, total_amount, status, transaction_hash, prescription_id, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$_SESSION['user_id'], $pharmacy_id, $order['total'], $status, $txHashToStore, $prescription_id, $payment_method]);
+            $stmt = $conn->prepare("INSERT INTO orders (customer_id, pharmacy_id, total_amount, status, transaction_hash, prescription_id, payment_method, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$_SESSION['user_id'], $pharmacy_id, $order['total'], $status, $txHashToStore, $prescription_id, $payment_method, $phone_number]);
         } else {
-            $stmt = $conn->prepare("INSERT INTO orders (customer_id, pharmacy_id, total_amount, status, transaction_hash, payment_method) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$_SESSION['user_id'], $pharmacy_id, $order['total'], $status, $txHashToStore, $payment_method]);
+            $stmt = $conn->prepare("INSERT INTO orders (customer_id, pharmacy_id, total_amount, status, transaction_hash, payment_method, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$_SESSION['user_id'], $pharmacy_id, $order['total'], $status, $txHashToStore, $payment_method, $phone_number]);
         }
         $order_id = $conn->lastInsertId();
         $order_ids[] = $order_id;

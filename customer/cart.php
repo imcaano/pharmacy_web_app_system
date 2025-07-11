@@ -328,19 +328,46 @@ foreach ($cart_items as $item) {
                         <button class="btn btn-primary me-2" type="button" onclick="payAndCreateOrder()">
                             <i class="fab fa-ethereum me-2"></i>Pay with MetaMask
                         </button>
-                        <button class="btn btn-success" type="button" onclick="showHormuudInstructions()">
-                            <i class="fas fa-mobile-alt me-2"></i>Pay with Hormuud USSD
+                        <button class="btn btn-success" type="button" data-bs-toggle="modal" data-bs-target="#hormuudModal">
+                            <i class="fas fa-mobile-alt me-2"></i> Pay with Hormuud USSD
                         </button>
                     </div>
-                    <div id="hormuudInstructions" style="display:none;" class="alert alert-info mt-3">
-                        <h5>Hormuud USSD Payment</h5>
-                        <ol>
-                            <li>Your order will be placed as <b>pending</b>.</li>
-                            <li>Dial <b>*000#</b> on your Hormuud line.</li>
-                            <li>Follow the prompts to complete your payment.</li>
-                            <li>Once payment is confirmed, your order will be marked as <b>paid</b>.</li>
-                        </ol>
-                        <button class="btn btn-success" type="button" onclick="placeHormuudOrder()">Place Order & Show USSD Steps</button>
+                    <!-- Hormuud USSD Modal -->
+                    <div class="modal fade" id="hormuudModal" tabindex="-1">
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title"><i class="fas fa-mobile-alt me-2"></i> Pay with Hormuud USSD</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                          </div>
+                          <div class="modal-body">
+                            <form id="hormuudForm" onsubmit="event.preventDefault(); placeHormuudOrder();">
+                              <div class="mb-3">
+                                <label for="hormuudPhone" class="form-label">Hormuud Phone Number</label>
+                                <input type="text" class="form-control" id="hormuudPhone" name="hormuudPhone" placeholder="e.g. 615XXXXXX" maxlength="9" pattern="6[0-9]{8}" required>
+                                <div class="form-text">Enter your Hormuud mobile number</div>
+                              </div>
+                              <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle me-2"></i>Payment Instructions:</h6>
+                                <ol class="mb-0">
+                                  <li>Your order will be placed as <b>pending</b> with order ID.</li>
+                                  <li>Dial <b>*000#</b> on your Hormuud line.</li>
+                                  <li>Select <b>1. Pay for Order</b></li>
+                                  <li>Enter your order ID (e.g., <b>ORDER123</b>)</li>
+                                  <li>Confirm the payment amount.</li>
+                                  <li>Your order will be automatically updated once payment is confirmed.</li>
+                                </ol>
+                              </div>
+                              <div class="alert alert-warning">
+                                <small><i class="fas fa-exclamation-triangle me-1"></i>Make sure you have sufficient balance in your Hormuud account.</small>
+                              </div>
+                              <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-mobile-alt me-2"></i> Place Order & Pay with Hormuud USSD
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     <div id="paymentResult" class="mt-2"></div>
                 </div>
@@ -435,7 +462,7 @@ foreach ($cart_items as $item) {
     }
 
     function showHormuudInstructions() {
-        document.getElementById('hormuudInstructions').style.display = 'block';
+        // Deprecated: now handled by modal
     }
     async function placeHormuudOrder() {
         // Optionally handle prescription upload first
@@ -455,6 +482,12 @@ foreach ($cart_items as $item) {
             }
             prescriptionId = uploadData.prescription_id;
         }
+        // Get phone number
+        const phone = document.getElementById('hormuudPhone').value;
+        if (!/^6[0-9]{8}$/.test(phone)) {
+            alert('Please enter a valid Hormuud phone number.');
+            return;
+        }
         // Place order as pending with Hormuud
         const response = await fetch('create_order.php', {
             method: 'POST',
@@ -463,13 +496,16 @@ foreach ($cart_items as $item) {
                 payment_method: 'hormuud',
                 amount: <?php echo json_encode($total); ?>,
                 cart: <?php echo json_encode($cart_items); ?>,
-                prescription_id: prescriptionId
+                prescription_id: prescriptionId,
+                phone: phone
             })
         });
         const data = await response.json();
         if (data.success) {
-            document.getElementById('paymentResult').innerHTML = '<span class="text-success">Order placed as pending. Please dial <b>*000#</b> on your Hormuud line to complete payment.</span>';
-            setTimeout(() => { window.location.href = 'orders.php?success=1'; }, 3000);
+            document.getElementById('paymentResult').innerHTML = '<span class="text-success">Order placed as pending. Please dial <b>*000#</b> on your Hormuud line or check your phone for a USSD prompt to complete payment.</span>';
+            var hormuudModal = bootstrap.Modal.getInstance(document.getElementById('hormuudModal'));
+            if (hormuudModal) hormuudModal.hide();
+            setTimeout(() => { window.location.href = 'orders.php?success=1'; }, 4000);
         } else {
             document.getElementById('paymentResult').innerHTML = '<span class="text-danger">Order failed: ' + (data.error || 'Unknown error') + '</span>';
         }
