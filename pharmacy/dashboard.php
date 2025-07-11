@@ -278,8 +278,8 @@ $total_sales_amount = $conn->query("SELECT COALESCE(SUM(total_amount), 0) FROM o
             <a href="profile.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='profile.php') echo ' active'; ?>">
                 <i class="fas fa-user me-2"></i> Profile
             </a>
-            <a href="../logout.php" class="nav-link text-danger mt-5">
-                <i class="fas fa-sign-out-alt me-2"></i> Logout
+            <a href="../logout.php" class="nav-link logout-btn" style="background-color: #0b6e6e; color: #fff; width: 100%; border-radius: 0; display: flex; align-items: center; font-weight: 500; padding: 12px 0 12px 18px; text-align: left; font-size: 1.1rem;">
+                <i class="fas fa-sign-out-alt me-2" style="font-size: 1.2rem;"></i> Logout
             </a>
         </nav>
     </div>
