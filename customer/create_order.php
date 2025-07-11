@@ -14,7 +14,7 @@ if (!$data || empty($data['amount']) || empty($data['cart'])) {
     exit();
 }
 
-$payment_method = isset($data['payment_method']) ? $data['payment_method'] : 'blockchain';
+$payment_method = isset($data['payment_method']) ? $data['payment_method'] : 'hormuud';
 $txHash = isset($data['txHash']) ? $data['txHash'] : null;
 $amount = $data['amount'];
 $cart = $data['cart'];

@@ -178,6 +178,37 @@ foreach ($cart_items as $item) {
             background: #0b6e6e;
             color: #fff;
         }
+        .cart-container, .payment-section {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+.cart-item-card {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding: 1rem 0;
+}
+.medicine-img { width: 60px; height: 60px; border-radius: 8px; margin-right: 1rem; }
+.item-details { flex: 1; display: flex; flex-wrap: wrap; align-items: center; }
+.item-title { font-weight: 600; }
+.item-qty { display: flex; align-items: center; }
+.qty-btn { background: #eee; border: none; width: 32px; height: 32px; }
+.remove-btn { background: none; border: none; color: #d9534f; margin-left: 1rem; }
+.cart-summary { border-top: 1px solid #eee; padding-top: 1rem; }
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.summary-row.total { font-weight: bold; font-size: 1.2rem; }
+.payment-options { display: flex; gap: 2rem; margin-bottom: 1rem; }
+.payment-option { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+.pay-logo { height: 32px; }
+.waafipay-fields { margin-bottom: 1rem; }
+#paymentResult { margin-top: 1rem; }
+@media (max-width: 600px) {
+  .cart-container, .payment-section { padding: 1rem; }
+  .cart-item-card { flex-direction: column; align-items: flex-start; }
+}
     </style>
 </head>
 <body>
@@ -233,145 +264,61 @@ foreach ($cart_items as $item) {
             </div>
         <?php endif; ?>
 
-        <div class="cart-card">
-            <?php if (empty($cart_items)): ?>
-                <div class="text-center py-5">
-                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-                    <h4>Your cart is empty</h4>
-                    <p class="text-muted">Browse our medicines and add items to your cart</p>
-                    <a href="medicines.php" class="btn btn-primary">
-                        <i class="fas fa-pills me-2"></i>Browse Medicines
-                    </a>
-                </div>
-            <?php else: ?>
+        <div class="cart-container">
+            <h2>Your Cart</h2>
+            <div class="cart-items">
                 <?php foreach ($cart_items as $item): ?>
-                    <div class="cart-item">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <h5 class="mb-1"><?php echo $item['name']; ?></h5>
-                                <p class="text-muted mb-0">
-                                    <i class="fas fa-clinic-medical me-2"></i><?php echo $item['pharmacy_name']; ?>
-                                </p>
-                                <?php if ($item['requires_prescription']): ?>
-                                    <span class="prescription-required mt-2 d-inline-block">
-                                        <i class="fas fa-file-medical me-2"></i>Prescription Required
-                                    </span>
-                                <?php endif; ?>
-                            </div>
-                            <div class="col-md-2">
-                                <p class="mb-0">
-                                    <i class="fas fa-dollar-sign me-2"></i><?php echo number_format($item['price'], 2); ?>
-                                </p>
-                            </div>
-                            <div class="col-md-2">
-                                <form method="POST" class="d-flex align-items-center">
-                                    <input type="hidden" name="cart_id" value="<?php echo $item['id']; ?>">
-                                    <input type="number" name="quantity" class="form-control quantity-input" 
-                                           value="<?php echo $item['quantity']; ?>" 
-                                           min="0" max="<?php echo $item['stock_quantity']; ?>" required>
-                                    <button type="submit" name="update_cart" class="btn btn-link">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>
-                                </form>
-                                <?php if ($item['stock_quantity'] <= 5): ?>
-                                    <small class="text-warning d-block mt-1">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>
-                                        Only <?php echo $item['stock_quantity']; ?> left in stock
-                                    </small>
-                                <?php endif; ?>
-                                <?php if ($item['quantity'] >= $item['stock_quantity']): ?>
-                                    <small class="text-danger d-block mt-1">
-                                        <i class="fas fa-exclamation-circle me-1"></i>
-                                        Maximum available quantity
-                                    </small>
-                                <?php endif; ?>
-                            </div>
-                            <div class="col-md-2 text-end">
-                                <form method="POST" class="d-inline">
-                                    <input type="hidden" name="cart_id" value="<?php echo $item['id']; ?>">
-                                    <button type="submit" name="remove_from_cart" class="btn btn-link text-danger">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
-                            </div>
+                <div class="cart-item-card">
+                    <div class="item-details">
+                        <div class="item-title" style="font-weight:700;font-size:1.2rem;letter-spacing:0.5px;line-height:1.3;margin-bottom:2px;"> 
+                            <?php echo htmlspecialchars($item['name']); ?>
                         </div>
+                        <div class="item-pharmacy" style="display:flex;align-items:center;color:#218c74;font-weight:400;font-size:0.98rem;margin-bottom:8px;margin-left:2px;">
+                            <i class="fas fa-clinic-medical me-1" style="color:#218c74;font-size:1rem;"></i>
+                            <span style="font-size:0.98rem;opacity:0.85;"> <?php echo htmlspecialchars($item['pharmacy_name']); ?> </span>
+                        </div>
+                        <div class="item-price">$<?php echo number_format($item['price'], 2); ?></div>
+                        <div class="item-qty">
+                            <form method="POST" style="display:inline-flex;align-items:center;">
+                                <input type="hidden" name="cart_id" value="<?php echo $item['id']; ?>">
+                                <button type="submit" name="update_cart" class="qty-btn" onclick="this.form.quantity.value=Math.max(1,parseInt(this.form.quantity.value)-1);">-</button>
+                                <input type="number" name="quantity" value="<?php echo $item['quantity']; ?>" min="1" max="<?php echo $item['stock_quantity']; ?>" style="width:40px;text-align:center;">
+                                <button type="submit" name="update_cart" class="qty-btn" onclick="this.form.quantity.value=Math.min(<?php echo $item['stock_quantity']; ?>,parseInt(this.form.quantity.value)+1);">+</button>
+                            </form>
+                        </div>
+                        <div class="item-subtotal">$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></div>
+                        <form method="POST" class="d-inline">
+                            <input type="hidden" name="cart_id" value="<?php echo $item['id']; ?>">
+                            <button type="submit" name="remove_from_cart" class="remove-btn"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </div>
                     </div>
                 <?php endforeach; ?>
-
-                <div class="total-card">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <h4 class="mb-0">Total Amount</h4>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <h3 class="mb-0">$<?php echo number_format($total, 2); ?></h3>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="text-end mt-4">
-                    <a href="medicines.php" class="btn btn-outline-primary me-2">
-                        <i class="fas fa-arrow-left me-2"></i>Continue Shopping
-                    </a>
-                    <?php if ($requires_prescription): ?>
-                        <form id="prescriptionForm" enctype="multipart/form-data" class="d-inline">
-                            <label class="form-label">Upload Prescription (PDF, JPG, PNG):</label>
-                            <input type="file" name="prescription_file" id="prescriptionFile" accept=".jpg,.jpeg,.png,.pdf" required class="form-control mb-2" style="display:inline-block;width:auto;">
-                        </form>
-                    <?php endif; ?>
-                    <div class="mb-2">
-                        <strong>Total:</strong> $<?php echo number_format($total, 2); ?>
-                        <span id="ethAmount" class="ms-3"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Choose Payment Method:</label><br>
-                        <button class="btn btn-primary me-2" type="button" onclick="payAndCreateOrder()">
-                            <i class="fab fa-ethereum me-2"></i>Pay with MetaMask
-                        </button>
-                        <button class="btn btn-success" type="button" data-bs-toggle="modal" data-bs-target="#hormuudModal">
-                            <i class="fas fa-mobile-alt me-2"></i> Pay with Hormuud USSD
-                        </button>
-                    </div>
-                    <!-- Hormuud USSD Modal -->
-                    <div class="modal fade" id="hormuudModal" tabindex="-1">
-                      <div class="modal-dialog">
-                        <div class="modal-content">
-                          <div class="modal-header">
-                            <h5 class="modal-title"><i class="fas fa-mobile-alt me-2"></i> Pay with Hormuud USSD</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                           </div>
-                          <div class="modal-body">
-                            <form id="hormuudForm" onsubmit="event.preventDefault(); placeHormuudOrder();">
-                              <div class="mb-3">
-                                <label for="hormuudPhone" class="form-label">Hormuud Phone Number</label>
-                                <input type="text" class="form-control" id="hormuudPhone" name="hormuudPhone" placeholder="e.g. 615XXXXXX" maxlength="9" pattern="6[0-9]{8}" required>
-                                <div class="form-text">Enter your Hormuud mobile number</div>
-                              </div>
-                              <div class="alert alert-info">
-                                <h6><i class="fas fa-info-circle me-2"></i>Payment Instructions:</h6>
-                                <ol class="mb-0">
-                                  <li>Your order will be placed as <b>pending</b> with order ID.</li>
-                                  <li>Dial <b>*000#</b> on your Hormuud line.</li>
-                                  <li>Select <b>1. Pay for Order</b></li>
-                                  <li>Enter your order ID (e.g., <b>ORDER123</b>)</li>
-                                  <li>Confirm the payment amount.</li>
-                                  <li>Your order will be automatically updated once payment is confirmed.</li>
-                                </ol>
-                              </div>
-                              <div class="alert alert-warning">
-                                <small><i class="fas fa-exclamation-triangle me-1"></i>Make sure you have sufficient balance in your Hormuud account.</small>
-                              </div>
-                              <button type="submit" class="btn btn-success w-100">
-                                <i class="fas fa-mobile-alt me-2"></i> Place Order & Pay with Hormuud USSD
-                              </button>
-                            </form>
+            <div class="cart-summary">
+                <div class="summary-row"><span>Subtotal</span><span>$<?php echo number_format($total, 2); ?></span></div>
+                <div class="summary-row total"><span>Total</span><span>$<?php echo number_format($total, 2); ?></span></div>
+                <a href="medicines.php" class="btn btn-outline-primary mt-3">Continue Shopping</a>
                           </div>
                         </div>
+        <div class="payment-section">
+            <h3>Choose Payment Method</h3>
+            <div class="payment-options">
+                <label class="payment-option">
+                    <input type="radio" name="payment_method" value="waafipay">
+                    <img src="../assets/img/waafi.jpg" alt="WaafiPay" class="pay-logo"> WaafiPay
+                </label>
+                <label class="payment-option">
+                    <input type="radio" name="payment_method" value="blockchain" checked>
+                    <img src="../assets/img/metamask.png" alt="MetaMask" class="pay-logo"> MetaMask
+                </label>
                       </div>
+            <div class="waafipay-fields" style="display:none;">
+                <label for="waafiPhone">WaafiPay Account/Phone</label>
+                <input type="text" id="waafiPhone" class="form-control" placeholder="e.g. 25261XXXXXXX">
                     </div>
-                    <div id="paymentResult" class="mt-2"></div>
-                </div>
-            <?php endif; ?>
+            <button class="btn btn-success w-100 mt-3" id="payNowBtn">Pay Now</button>
+            <div id="paymentResult"></div>
         </div>
     </div>
 
@@ -464,52 +411,90 @@ foreach ($cart_items as $item) {
     function showHormuudInstructions() {
         // Deprecated: now handled by modal
     }
-    async function placeHormuudOrder() {
-        // Optionally handle prescription upload first
-        let prescriptionId = null;
-        if (<?php echo $requires_prescription ? 'true' : 'false'; ?>) {
-            const fileInput = document.getElementById('prescriptionFile');
-            if (!fileInput.files.length) {
-                alert('Please upload a prescription file.');
-                return;
-            }
-            const formData = new FormData(document.getElementById('prescriptionForm'));
-            const uploadResp = await fetch('upload_prescription_ajax.php', { method: 'POST', body: formData });
-            const uploadData = await uploadResp.json();
-            if (!uploadData.success) {
-                document.getElementById('paymentResult').innerHTML = '<span class="text-danger">Prescription upload failed: ' + (uploadData.error || 'Unknown error') + '</span>';
-                return;
-            }
-            prescriptionId = uploadData.prescription_id;
-        }
-        // Get phone number
-        const phone = document.getElementById('hormuudPhone').value;
-        if (!/^6[0-9]{8}$/.test(phone)) {
-            alert('Please enter a valid Hormuud phone number.');
+    async function placeWaafiPayOrder() {
+        const phone = document.getElementById('waafiPhone').value;
+        if (!/^2526[0-9]{8}$/.test(phone)) {
+            alert('Please enter a valid WaafiPay phone/account number.');
             return;
         }
-        // Place order as pending with Hormuud
-        const response = await fetch('create_order.php', {
+        // Send AJAX to waafipay_payment.php
+        const response = await fetch('waafipay_payment.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                payment_method: 'hormuud',
+                phone: phone,
                 amount: <?php echo json_encode($total); ?>,
-                cart: <?php echo json_encode($cart_items); ?>,
-                prescription_id: prescriptionId,
-                phone: phone
+                cart: <?php echo json_encode($cart_items); ?>
             })
         });
         const data = await response.json();
         if (data.success) {
-            document.getElementById('paymentResult').innerHTML = '<span class="text-success">Order placed as pending. Please dial <b>*000#</b> on your Hormuud line or check your phone for a USSD prompt to complete payment.</span>';
-            var hormuudModal = bootstrap.Modal.getInstance(document.getElementById('hormuudModal'));
-            if (hormuudModal) hormuudModal.hide();
-            setTimeout(() => { window.location.href = 'orders.php?success=1'; }, 4000);
+            document.getElementById('paymentResult').innerHTML = '<span class="text-success">WaafiPay payment successful! Order placed.</span>';
+            setTimeout(() => { window.location.href = 'orders.php?success=1'; }, 2000);
         } else {
-            document.getElementById('paymentResult').innerHTML = '<span class="text-danger">Order failed: ' + (data.error || 'Unknown error') + '</span>';
+            let msg = data.error;
+            if (msg && msg.includes('RCS_USER_REJECTED')) {
+                msg = 'Payment cancelled by customer.';
+            }
+            document.getElementById('paymentResult').innerHTML = '<span class="text-danger">WaafiPay payment failed: ' + (msg || 'Unknown error') + '</span>';
+        }
+        var waafiModal = bootstrap.Modal.getInstance(document.getElementById('waafipayModal'));
+        if (waafiModal) waafiModal.hide();
+    }
+
+    function payWithSelectedMethod() {
+        const selected = document.querySelector('input[name="payment_method"]:checked').value;
+        if (selected === 'waafipay') {
+            var waafiModal = new bootstrap.Modal(document.getElementById('waafipayModal'));
+            waafiModal.show();
+        } else {
+            payAndCreateOrder();
         }
     }
+    // Show/hide WaafiPay fields
+    const waafiRadio = document.querySelector('input[value="waafipay"]');
+    const metaRadio = document.querySelector('input[value="blockchain"]');
+    const waafiFields = document.querySelector('.waafipay-fields');
+    waafiRadio.addEventListener('change', () => { if(waafiRadio.checked) waafiFields.style.display='block'; });
+    metaRadio.addEventListener('change', () => { if(metaRadio.checked) waafiFields.style.display='none'; });
+    // Payment button logic
+    const payBtn = document.getElementById('payNowBtn');
+    payBtn.onclick = async function() {
+        if (waafiRadio.checked) {
+            const phone = document.getElementById('waafiPhone').value;
+            if (!/^2526[0-9]{8}$/.test(phone)) {
+                document.getElementById('paymentResult').innerHTML = '<span class="text-danger">Enter a valid WaafiPay phone/account number.</span>';
+                return;
+            }
+            payBtn.disabled = true; payBtn.innerHTML = 'Processing...';
+            const response = await fetch('waafipay_payment.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phone: phone,
+                    amount: <?php echo json_encode($total); ?>,
+                    cart: <?php echo json_encode($cart_items); ?>
+                })
+            });
+            const data = await response.json();
+            payBtn.disabled = false; payBtn.innerHTML = 'Pay Now';
+            if (data.success) {
+                document.getElementById('paymentResult').innerHTML = '<span class="text-success">WaafiPay payment successful! Order placed.</span>';
+                setTimeout(() => { window.location.href = 'orders.php?success=1'; }, 2000);
+            } else {
+                let msg = data.error;
+                if (msg && msg.includes('RCS_USER_REJECTED')) {
+                    msg = 'Payment cancelled by customer.';
+                }
+                document.getElementById('paymentResult').innerHTML = '<span class="text-danger">WaafiPay payment failed: ' + (msg || 'Unknown error') + '</span>';
+            }
+        } else {
+            // MetaMask logic (call your existing payAndCreateOrder or similar)
+            payBtn.disabled = true; payBtn.innerHTML = 'Processing...';
+            await payAndCreateOrder();
+            payBtn.disabled = false; payBtn.innerHTML = 'Pay Now';
+        }
+    };
     </script>
 </body>
 </html> 

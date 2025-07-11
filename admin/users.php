@@ -343,6 +343,36 @@ $users = $conn->query("
             color: var(--primary);
             margin-bottom: 2rem;
         }
+.admin-user-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  border-left: 6px solid #0b6e6e;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.admin-user-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;
+}
+.admin-user-title { font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px; }
+.admin-user-type {
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 8px;
+  color: #fff;
+  background: #218c74;
+  font-size: 0.98rem;
+  text-transform: capitalize;
+}
+.admin-user-type.admin { background: #0b6e6e; }
+.admin-user-type.customer { background: #27ae60; }
+.admin-user-type.pharmacy { background: #2980b9; }
+.admin-user-info { color: #555; font-size: 0.97rem; margin-bottom: 0.5rem; }
+.admin-user-meta { color: #888; font-size: 0.95rem; margin-bottom: 0.5rem; }
+.admin-user-actions { margin-top: 1rem; display: flex; gap: 0.5rem; }
     </style>
 </head>
 <body>
@@ -400,32 +430,31 @@ $users = $conn->query("
         <div class="row g-4">
             <?php foreach ($users as $user): ?>
                 <div class="col-md-6 col-lg-4">
-                    <div class="user-card">
-                        <div class="user-info">
-                            <div class="user-header text-center">
-                                <div class="mb-3">
-                                    <h5 class="user-name"><?php echo htmlspecialchars($user['name'] ?? $user['email']); ?></h5>
-                                    <span class="user-type-badge type-<?php echo $user['user_type']; ?>">
-                                        <?php echo ucfirst($user['user_type']); ?>
+                    <div class="admin-user-card">
+                        <div class="admin-user-header">
+                            <div class="admin-user-title"><?php echo htmlspecialchars($user['name'] ?? $user['email']); ?></div>
+                            <span class="admin-user-type <?php echo strtolower($user['user_type']); ?>"><?php echo ucfirst($user['user_type']); ?></span>
+                        </div>
+                        <div class="admin-user-info">
+                            <i class="fas fa-envelope me-1"></i> <?php echo htmlspecialchars($user['email']); ?><br>
+                            <?php if ($user['pharmacy_name']): ?>
+                                <i class="fas fa-clinic-medical me-1"></i>Pharmacy: <b><?php echo htmlspecialchars($user['pharmacy_name']); ?></b><br>
+                            <?php endif; ?>
+                            <i class="fas fa-wallet me-1"></i>MetaMask: <span style="font-family:monospace;">
+                                <?php
+                                  $addr = $user['metamask_address'] ?? '';
+                                  if ($addr && strlen($addr) > 12) {
+                                    echo htmlspecialchars(substr($addr,0,6) . '...' . substr($addr,-4));
+                                  } else {
+                                    echo htmlspecialchars($addr ?: 'Not provided');
+                                  }
+                                ?>
                                     </span>
                                 </div>
+                        <div class="admin-user-meta">
+                            <i class="fas fa-clock me-1"></i>Joined: <?php echo date('M d, Y', strtotime($user['created_at'])); ?>
                             </div>
-                            <div class="user-details">
-                                <div class="user-detail-item">
-                                    <i class="fas fa-envelope"></i>
-                                    <span><?php echo htmlspecialchars($user['email']); ?></span>
-                                </div>
-                                <div class="user-detail-item">
-                                    <i class="fas fa-wallet"></i>
-                                    <span><?php echo htmlspecialchars($user['metamask_address'] ?? 'Not provided'); ?></span>
-                                </div>
-                            </div>
-                            <div class="user-meta">
-                                <small>
-                                    <i class="fas fa-clock"></i>
-                                    Joined: <?php echo date('M d, Y', strtotime($user['created_at'])); ?>
-                                </small>
-                                <div class="btn-group">
+                        <div class="admin-user-actions">
                                     <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editUserModal<?php echo $user['id']; ?>">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -436,8 +465,6 @@ $users = $conn->query("
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

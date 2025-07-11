@@ -116,6 +116,36 @@ if ($orders) {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(11, 110, 110, 0.2);
         }
+
+.order-expert-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  border-left: 6px solid #0b6e6e;
+}
+.order-expert-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;
+}
+.order-expert-title { font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px; }
+.order-expert-status {
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 8px;
+  color: #fff;
+  background: #218c74;
+  font-size: 0.98rem;
+  text-transform: capitalize;
+}
+.order-expert-status.pending { background: #f39c12; }
+.order-expert-status.completed { background: #27ae60; }
+.order-expert-status.cancelled { background: #e74c3c; }
+.order-expert-info { color: #555; font-size: 0.97rem; margin-bottom: 0.5rem; }
+.order-expert-items { margin-top: 0.5rem; }
+.order-expert-item { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f1f1; padding: 6px 0; }
+.order-expert-total { font-weight: bold; font-size: 1.1rem; color: #0b6e6e; margin-top: 0.5rem; }
+.order-expert-date { color: #888; font-size: 0.95rem; }
     </style>
 </head>
 <body>
@@ -125,26 +155,26 @@ if ($orders) {
             <h4><i class="fas fa-clinic-medical me-2"></i>PharmaWeb</h4>
         </div>
         <nav class="mt-4">
-            <a href="dashboard.php" class="nav-link">
+            <a href="dashboard.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='dashboard.php') echo ' active'; ?>">
                 <i class="fas fa-tachometer-alt me-2"></i> Dashboard
             </a>
-            <a href="medicines.php" class="nav-link">
+            <a href="medicines.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='medicines.php') echo ' active'; ?>">
                 <i class="fas fa-pills me-2"></i> Browse Medicines
             </a>
-            <a href="cart.php" class="nav-link">
+            <a href="cart.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='cart.php') echo ' active'; ?>">
                 <i class="fas fa-shopping-cart me-2"></i> Cart
             </a>
-            <a href="orders.php" class="nav-link active">
+            <a href="orders.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='orders.php') echo ' active'; ?>">
                 <i class="fas fa-box me-2"></i> My Orders
             </a>
-            <a href="prescriptions.php" class="nav-link">
+            <a href="prescriptions.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='prescriptions.php') echo ' active'; ?>">
                 <i class="fas fa-file-medical me-2"></i> Prescriptions
             </a>
-            <a href="profile.php" class="nav-link">
+            <a href="profile.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='profile.php') echo ' active'; ?>">
                 <i class="fas fa-user me-2"></i> Profile
             </a>
-            <a href="../logout.php" class="nav-link text-danger mt-5">
-                <i class="fas fa-sign-out-alt me-2"></i> Logout
+            <a href="../logout.php" class="nav-link logout-btn" style="background:none;color:#fff;font-weight:500;padding:12px 0 12px 18px;text-align:left;display:flex;align-items:center;border-radius:0;font-size:1.1rem;">
+                <i class="fas fa-sign-out-alt me-2" style="font-size:1.2rem;"></i> Logout
             </a>
         </nav>
     </div>
@@ -172,68 +202,27 @@ if ($orders) {
             </div>
         <?php else: ?>
             <?php foreach ($orders as $order): ?>
-                <div class="order-card">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <h5 class="mb-1">Order #<?php echo $order['id']; ?></h5>
-                            <div class="text-muted small">Placed on <?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?></div>
-                        </div>
-                        <span class="order-status status-<?php echo strtolower($order['status']); ?>">
-                            <?php echo ucfirst($order['status']); ?>
-                        </span>
-                    </div>
-                    <div class="mb-2">
-                        <strong>Total:</strong> $<?php echo number_format($order['total_amount'], 2); ?>
-                    </div>
-                    <div class="mb-2">
-                        <strong>Items:</strong>
-                        <table class="table table-sm order-items-table mt-2">
-                            <thead>
-                                <tr>
-                                    <th>Medicine</th>
-                                    <th>Pharmacy</th>
-                                    <th>Price</th>
-                                    <th>Qty</th>
-                                    <th>Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (!empty($order_items[$order['id']])): ?>
-                                    <?php foreach ($order_items[$order['id']] as $item): ?>
-                                        <tr>
-                                            <td><?php echo $item['name']; ?></td>
-                                            <td><?php echo $item['pharmacy_name']; ?></td>
-                                            <td>$<?php echo number_format($item['price'], 2); ?></td>
-                                            <td><?php echo $item['quantity']; ?></td>
-                                            <td>$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mb-2">
-                        <strong>Blockchain Timeline:</strong>
-                        <ul class="list-inline">
-                            <li class="list-inline-item <?php echo ($order['status'] !== 'pending') ? 'text-success' : ''; ?>">Requested</li>
-                            <li class="list-inline-item <?php echo ($order['status'] === 'approved' || $order['status'] === 'completed') ? 'text-success' : ''; ?>">Accepted</li>
-                            <li class="list-inline-item <?php echo ($order['status'] === 'completed') ? 'text-success' : ''; ?>">Shipped</li>
-                            <li class="list-inline-item <?php echo ($order['status'] === 'completed') ? 'text-success' : ''; ?>">Delivered</li>
-                        </ul>
-                        <?php if ($order['transaction_hash']): ?>
-                            <div>
-                                <strong>TxHash:</strong> <span style="font-family:monospace;"> <?php echo $order['transaction_hash']; ?> </span>
-                                <a href="#" class="btn btn-outline-info btn-sm ms-2" onclick="downloadBlockchainReceipt('<?php echo $order['transaction_hash']; ?>')">
-                                    <i class="fas fa-download"></i> Download Blockchain Receipt
-                                </a>
-                            </div>
-                        <?php endif; ?>
-                        <button class="btn btn-outline-danger btn-sm mt-2" onclick="disputeOrder(<?php echo $order['id']; ?>)">
-                            <i class="fas fa-gavel"></i> Dispute Order
-                        </button>
-                    </div>
+        <div class="order-expert-card">
+          <div class="order-expert-header">
+            <div class="order-expert-title">Order #<?php echo $order['id']; ?> <span class="order-expert-date">(<?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?>)</span></div>
+            <span class="order-expert-status <?php echo strtolower($order['status']); ?>"><?php echo ucfirst($order['status']); ?></span>
+          </div>
+          <div class="order-expert-info">
+            <i class="fas fa-clinic-medical me-1"></i>Pharmacy: <b><?php echo htmlspecialchars($order['pharmacy_name'] ?? ''); ?></b>
+          </div>
+          <div class="order-expert-items">
+            <?php if (!empty($order_items[$order['id']])): ?>
+              <?php foreach ($order_items[$order['id']] as $item): ?>
+                <div class="order-expert-item">
+                  <span><?php echo htmlspecialchars($item['name']); ?> x<?php echo $item['quantity']; ?></span>
+                  <span>$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></span>
                 </div>
-            <?php endforeach; ?>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </div>
+          <div class="order-expert-total">Total: $<?php echo number_format($order['total_amount'], 2); ?></div>
+        </div>
+        <?php endforeach; ?>
         <?php endif; ?>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

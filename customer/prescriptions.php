@@ -143,26 +143,26 @@ $prescriptions = $stmt->fetchAll();
             <h4><i class="fas fa-clinic-medical me-2"></i>PharmaWeb</h4>
         </div>
         <nav class="mt-4">
-            <a href="dashboard.php" class="nav-link">
+            <a href="dashboard.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='dashboard.php') echo ' active'; ?>">
                 <i class="fas fa-tachometer-alt me-2"></i> Dashboard
             </a>
-            <a href="medicines.php" class="nav-link">
+            <a href="medicines.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='medicines.php') echo ' active'; ?>">
                 <i class="fas fa-pills me-2"></i> Browse Medicines
             </a>
-            <a href="cart.php" class="nav-link">
+            <a href="cart.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='cart.php') echo ' active'; ?>">
                 <i class="fas fa-shopping-cart me-2"></i> Cart
             </a>
-            <a href="orders.php" class="nav-link">
+            <a href="orders.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='orders.php') echo ' active'; ?>">
                 <i class="fas fa-box me-2"></i> My Orders
             </a>
-            <a href="prescriptions.php" class="nav-link active">
+            <a href="prescriptions.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='prescriptions.php') echo ' active'; ?>">
                 <i class="fas fa-file-medical me-2"></i> Prescriptions
             </a>
-            <a href="profile.php" class="nav-link">
+            <a href="profile.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='profile.php') echo ' active'; ?>">
                 <i class="fas fa-user me-2"></i> Profile
             </a>
-            <a href="../logout.php" class="nav-link text-danger mt-5">
-                <i class="fas fa-sign-out-alt me-2"></i> Logout
+            <a href="../logout.php" class="nav-link logout-btn" style="background:none;color:#fff;font-weight:500;padding:12px 0 12px 18px;text-align:left;display:flex;align-items:center;border-radius:0;font-size:1.1rem;">
+                <i class="fas fa-sign-out-alt me-2" style="font-size:1.2rem;"></i> Logout
             </a>
         </nav>
     </div>

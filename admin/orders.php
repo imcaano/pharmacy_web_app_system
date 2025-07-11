@@ -106,6 +106,39 @@ $orders = $orders->fetchAll();
         .order-card i {
             color: #0b6e6e;
         }
+
+.admin-order-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  border-left: 6px solid #0b6e6e;
+}
+.admin-order-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;
+}
+.admin-order-title { font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px; }
+.admin-order-status {
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 8px;
+  color: #fff;
+  background: #218c74;
+  font-size: 0.98rem;
+  text-transform: capitalize;
+}
+.admin-order-status.pending { background: #f39c12; }
+.admin-order-status.completed { background: #27ae60; }
+.admin-order-status.cancelled { background: #e74c3c; }
+.admin-order-status.approved { background: #2980b9; }
+.admin-order-status.rejected { background: #c0392b; }
+.admin-order-info { color: #555; font-size: 0.97rem; margin-bottom: 0.5rem; }
+.admin-order-items { margin-top: 0.5rem; }
+.admin-order-item { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f1f1; padding: 6px 0; }
+.admin-order-total { font-weight: bold; font-size: 1.1rem; color: #0b6e6e; margin-top: 0.5rem; }
+.admin-order-date { color: #888; font-size: 0.95rem; }
+.admin-order-actions { margin-top: 1rem; display: flex; gap: 0.5rem; }
     </style>
 </head>
 <body>
@@ -199,46 +232,36 @@ $orders = $orders->fetchAll();
         <div class="row g-4">
             <?php foreach ($orders as $order): ?>
                 <div class="col-md-6 col-lg-4">
-                    <div class="order-card p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h5 class="mb-1">Order #<?php echo $order['id']; ?></h5>
-                                <p class="text-muted mb-0">
-                                    <i class="fas fa-user me-2"></i><?php echo $order['customer_email']; ?>
-                                </p>
-                            </div>
-                            <span class="status-badge status-<?php echo $order['status']; ?>">
-                                <?php echo ucfirst($order['status']); ?>
-                            </span>
+                    <div class="admin-order-card">
+                        <div class="admin-order-header">
+                            <div class="admin-order-title">Order #<?php echo $order['id']; ?> <span class="admin-order-date">(<?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?>)</span></div>
+                            <span class="admin-order-status <?php echo strtolower($order['status']); ?>"><?php echo ucfirst($order['status']); ?></span>
                         </div>
-                        <div class="mb-3">
-                            <p class="mb-1">
-                                <i class="fas fa-clinic-medical me-2"></i><?php echo $order['pharmacy_name']; ?>
-                            </p>
-                            <p class="mb-1">
-                                <i class="fas fa-dollar-sign me-2"></i><?php echo number_format($order['total_amount'], 2); ?>
-                            </p>
-                            <?php if ($order['prescription_id']): ?>
-                                <p class="mb-1">
-                                    <i class="fas fa-file-medical me-2"></i>Dr. <?php echo $order['doctor_name']; ?>
-                                </p>
-                            <?php endif; ?>
-                            <p class="mb-1">
-                                <i class="fas fa-clock me-2"></i><?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?>
-                            </p>
+                        <div class="admin-order-info">
+                            <i class="fas fa-user me-1"></i>Customer: <b><?php echo htmlspecialchars($order['customer_email']); ?></b><br>
+                            <i class="fas fa-clinic-medical me-1"></i>Pharmacy: <b><?php echo htmlspecialchars($order['pharmacy_name']); ?></b>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewOrderModal<?php echo $order['id']; ?>">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#updateStatusModal<?php echo $order['id']; ?>">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </div>
+                        <div class="admin-order-items">
+                            <?php
+                            $items = $conn->query("SELECT oi.*, m.name as medicine_name FROM order_items oi JOIN medicines m ON oi.medicine_id = m.id WHERE oi.order_id = " . $order['id'])->fetchAll();
+                            foreach ($items as $item): ?>
+                                <div class="admin-order-item">
+                                    <span><?php echo htmlspecialchars($item['medicine_name']); ?> x<?php echo $item['quantity']; ?></span>
+                                    <span>$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="admin-order-total">Total: $<?php echo number_format($order['total_amount'], 2); ?></div>
+                        <div class="admin-order-actions">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewOrderModal<?php echo $order['id']; ?>">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#updateStatusModal<?php echo $order['id']; ?>">
+                                <i class="fas fa-edit"></i>
+                            </button>
                             <?php if ($order['prescription_id']): ?>
                                 <a href="<?php echo $order['prescription_file']; ?>" class="btn btn-sm btn-outline-info" target="_blank">
-                                    <i class="fas fa-file-medical me-1"></i>View Prescription
+                                    <i class="fas fa-file-medical me-1"></i>Prescription
                                 </a>
                             <?php endif; ?>
                         </div>

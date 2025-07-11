@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 07, 2025 at 02:17 PM
+-- Generation Time: Jul 12, 2025 at 12:06 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -34,6 +34,13 @@ CREATE TABLE `cart` (
   `quantity` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `cart`
+--
+
+INSERT INTO `cart` (`id`, `customer_id`, `medicine_id`, `quantity`, `created_at`) VALUES
+(6, 12, 4, 1, '2025-07-09 21:37:52');
 
 -- --------------------------------------------------------
 
@@ -78,7 +85,8 @@ CREATE TABLE `medicines` (
 --
 
 INSERT INTO `medicines` (`id`, `pharmacy_id`, `name`, `description`, `manufacturer`, `country_of_origin`, `category`, `price`, `stock_quantity`, `expiry_date`, `requires_prescription`, `status`, `created_at`, `batch_source_info`) VALUES
-(4, 3, 'PARECTAMOL', NULL, NULL, NULL, 'Antibiotic', 20.00, 1998, NULL, 0, 'active', '2025-07-07 10:23:44', NULL);
+(4, 3, 'PARECTAMOL', NULL, 'hormuuud', 'somlia', 'Antibiotic', 20.00, 1998, '2025-07-19', 0, 'active', '2025-07-07 10:23:44', NULL),
+(5, 3, 'anti biotic', NULL, NULL, NULL, 'Antibiotic', 20.00, 1997, NULL, 0, 'active', '2025-07-07 16:05:12', NULL);
 
 -- --------------------------------------------------------
 
@@ -94,6 +102,9 @@ CREATE TABLE `orders` (
   `total_amount` decimal(10,2) NOT NULL,
   `status` enum('pending','approved','rejected','completed','cancelled') DEFAULT 'pending',
   `payment_status` enum('pending','completed','failed') DEFAULT 'pending',
+  `payment_method` enum('blockchain','hormuud','evc_plus','cash') DEFAULT 'blockchain',
+  `phone_number` varchar(20) DEFAULT NULL,
+  `ussd_session_id` varchar(50) DEFAULT NULL,
   `transaction_hash` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `payout_amount` decimal(10,2) DEFAULT NULL,
@@ -104,8 +115,10 @@ CREATE TABLE `orders` (
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`id`, `customer_id`, `pharmacy_id`, `prescription_id`, `total_amount`, `status`, `payment_status`, `transaction_hash`, `created_at`, `payout_amount`, `payout_tx_hash`) VALUES
-(2, 12, 3, NULL, 20.00, 'approved', 'pending', '0x1d7ab29d90de313aa02ebc24522ab7307d8f03f37951fb2ce0183aa1026badf3', '2025-07-07 10:29:59', NULL, NULL);
+INSERT INTO `orders` (`id`, `customer_id`, `pharmacy_id`, `prescription_id`, `total_amount`, `status`, `payment_status`, `payment_method`, `phone_number`, `ussd_session_id`, `transaction_hash`, `created_at`, `payout_amount`, `payout_tx_hash`) VALUES
+(2, 12, 3, NULL, 20.00, 'approved', 'pending', 'blockchain', NULL, NULL, '0x1d7ab29d90de313aa02ebc24522ab7307d8f03f37951fb2ce0183aa1026badf3', '2025-07-07 10:29:59', NULL, NULL),
+(4, 12, 3, NULL, 20.00, 'approved', 'pending', 'blockchain', NULL, NULL, '0x47addcd6e130c8a34986af5337c709a1b5ca95558cf1c4b1348023db1e8561f8', '2025-07-07 16:18:36', NULL, NULL),
+(5, 12, 3, NULL, 20.00, 'pending', 'pending', 'hormuud', '619837755', NULL, NULL, '2025-07-09 21:37:31', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -126,7 +139,9 @@ CREATE TABLE `order_items` (
 --
 
 INSERT INTO `order_items` (`id`, `order_id`, `medicine_id`, `quantity`, `price`) VALUES
-(2, 2, 4, 1, 20.00);
+(2, 2, 4, 1, 20.00),
+(3, 4, 5, 1, 20.00),
+(4, 5, 5, 1, 20.00);
 
 -- --------------------------------------------------------
 
@@ -253,7 +268,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `email`, `password`, `user_type`, `metamask_address`, `created_at`, `updated_at`, `user_hash`, `tx_hash`) VALUES
 (6, 'abdi@gmail.com', '$2y$10$GbaCfEKRGRFmdSowIGZBrOK1UHq7XdBDTq9Kz5i6PfXgJBQY5yDlq', 'admin', '0x19523a25be5533a3080b07859580e62294235523', '2025-06-23 09:27:15', '2025-06-23 11:23:02', NULL, NULL),
 (11, 'iamcaano2@gmail.com', '$2y$10$qOtnrv0hevBsfNtNlndNj.2Ak4MTgcgahSJaAKlEiJnMntn.kekwO', 'pharmacy', '0x2546BcD3c84621e976D8185a91A922aE77ECEc30', '2025-07-07 10:22:59', '2025-07-07 10:22:59', '0x9db22984d7a856e2493387dcb465b5999f9d5989c38676923bc50b3d02151e2d', '0x58fcf08914ea584a30ec238367bf07b2c394940fafaa732c6f6eab7f521d45a7'),
-(12, 'imhamza1@yahoo.com', '$2y$10$oi9IeX57vc.xgeeHQ.w.yeA7uNHMMOjvNMnsC1BRYMBGA3QSia9SK', 'customer', '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', '2025-07-07 10:29:26', '2025-07-07 10:29:26', '0x200fd56ffa00380272934f34ebab7a36f8de79f7415180729c914a1066269074', '0x77e405704983eee71c88f933da4699b968cb101e2df9d1472f02340eb9088eb7');
+(12, 'imhamza1@yahoo.com', '$2y$10$oi9IeX57vc.xgeeHQ.w.yeA7uNHMMOjvNMnsC1BRYMBGA3QSia9SK', 'admin', '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', '2025-07-07 10:29:26', '2025-07-11 21:30:06', '0x200fd56ffa00380272934f34ebab7a36f8de79f7415180729c914a1066269074', '0x77e405704983eee71c88f933da4699b968cb101e2df9d1472f02340eb9088eb7');
 
 --
 -- Indexes for dumped tables
@@ -352,7 +367,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `dispute_logs`
@@ -364,19 +379,19 @@ ALTER TABLE `dispute_logs`
 -- AUTO_INCREMENT for table `medicines`
 --
 ALTER TABLE `medicines`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `pharmacies`

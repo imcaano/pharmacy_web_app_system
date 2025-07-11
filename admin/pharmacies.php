@@ -301,6 +301,35 @@ $pharmacies = $conn->query("
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(11, 110, 110, 0.2);
         }
+.admin-pharmacy-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  border-left: 6px solid #0b6e6e;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.admin-pharmacy-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;
+}
+.admin-pharmacy-title { font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px; }
+.admin-pharmacy-status {
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 8px;
+  color: #fff;
+  background: #218c74;
+  font-size: 0.98rem;
+  text-transform: capitalize;
+}
+.admin-pharmacy-status.active { background: #27ae60; }
+.admin-pharmacy-status.inactive { background: #e74c3c; }
+.admin-pharmacy-info { color: #555; font-size: 0.97rem; margin-bottom: 0.5rem; }
+.admin-pharmacy-meta { color: #888; font-size: 0.95rem; margin-bottom: 0.5rem; }
+.admin-pharmacy-actions { margin-top: 1rem; display: flex; gap: 0.5rem; }
     </style>
 </head>
 <body>
@@ -353,38 +382,31 @@ $pharmacies = $conn->query("
         <div class="row g-4">
             <?php foreach ($pharmacies as $pharmacy): ?>
                 <div class="col-md-6 col-lg-4">
-                    <div class="pharmacy-card">
-                        <div class="pharmacy-info">
-                            <div class="pharmacy-header">
-                            <div>
-                                    <h5 class="pharmacy-name"><?php echo htmlspecialchars($pharmacy['pharmacy_name']); ?></h5>
-                                    <p>
-                                        <i class="fas fa-envelope"></i>
-                                        <?php echo htmlspecialchars($pharmacy['email']); ?>
-                                </p>
-                            </div>
-                            <span class="status-badge <?php echo $pharmacy['status'] === 'active' ? 'status-active' : 'status-inactive'; ?>">
-                                <?php echo ucfirst($pharmacy['status']); ?>
-                            </span>
+                    <div class="admin-pharmacy-card">
+                        <div class="admin-pharmacy-header">
+                            <div class="admin-pharmacy-title"><?php echo htmlspecialchars($pharmacy['pharmacy_name']); ?></div>
+                            <span class="admin-pharmacy-status <?php echo strtolower($pharmacy['status']); ?>"><?php echo ucfirst($pharmacy['status']); ?></span>
                         </div>
-                            <p>
-                                <i class="fas fa-map-marker-alt"></i>
-                                <?php echo htmlspecialchars($pharmacy['address']); ?>
-                            </p>
-                            <p>
-                                <i class="fas fa-phone"></i>
-                                <?php echo htmlspecialchars($pharmacy['phone']); ?>
-                            </p>
-                            <p>
-                                <i class="fas fa-id-card"></i>
-                                License: <?php echo htmlspecialchars($pharmacy['license_number']); ?>
-                            </p>
-                            <div class="pharmacy-meta">
-                                <small>
-                                    <i class="fas fa-clock"></i>
-                                Joined: <?php echo date('M d, Y', strtotime($pharmacy['user_created_at'])); ?>
-                            </small>
-                                <div class="btn-group">
+                        <div class="admin-pharmacy-info">
+                            <i class="fas fa-envelope me-1"></i> <?php echo htmlspecialchars($pharmacy['email']); ?><br>
+                            <i class="fas fa-wallet me-1"></i>MetaMask: <span style="font-family:monospace;">
+                                <?php
+                                  $addr = $pharmacy['metamask_address'] ?? '';
+                                  if ($addr && strlen($addr) > 12) {
+                                    echo htmlspecialchars(substr($addr,0,6) . '...' . substr($addr,-4));
+                                  } else {
+                                    echo htmlspecialchars($addr ?: 'Not provided');
+                                  }
+                                ?>
+                            </span><br>
+                            <i class="fas fa-map-marker-alt me-1"></i><?php echo htmlspecialchars($pharmacy['address']); ?><br>
+                            <i class="fas fa-phone me-1"></i><?php echo htmlspecialchars($pharmacy['phone']); ?><br>
+                            <i class="fas fa-id-card me-1"></i>License: <?php echo htmlspecialchars($pharmacy['license_number']); ?>
+                            </div>
+                        <div class="admin-pharmacy-meta">
+                            <i class="fas fa-clock me-1"></i>Joined: <?php echo date('M d, Y', strtotime($pharmacy['user_created_at'])); ?>
+                        </div>
+                        <div class="admin-pharmacy-actions">
                                     <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPharmacyModal<?php echo $pharmacy['id']; ?>">
                                         <i class="fas fa-edit"></i>
                                 </button>
@@ -395,8 +417,6 @@ $pharmacies = $conn->query("
                                             <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 <?php
-error_reporting(0);
-ini_set('display_errors', 0);
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 session_start();
 require_once '../config/database.php';
 
@@ -13,6 +13,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
 // Handle medicine deletion
 $delete_error = '';
 if (isset($_POST['delete_medicine'])) {
+    echo '<div style="background:yellow;color:black;padding:10px;">DEBUG: Delete POST received. medicine_id=' . htmlspecialchars($_POST['medicine_id'] ?? 'NULL') . '</div>';
     $medicine_id = $_POST['medicine_id'];
     try {
         // Start transaction
@@ -26,22 +27,28 @@ if (isset($_POST['delete_medicine'])) {
         $stmt = $conn->prepare("DELETE FROM order_items WHERE medicine_id = ?");
         $stmt->execute([$medicine_id]);
         
+        // Delete from prescription orders
+        $stmt = $conn->prepare("DELETE FROM prescription_orders WHERE medicine_id = ?");
+        $stmt->execute([$medicine_id]);
+        
         // Finally delete the medicine
-    $stmt = $conn->prepare("DELETE FROM medicines WHERE id = ?");
-    $stmt->execute([$medicine_id]);
+        $stmt = $conn->prepare("DELETE FROM medicines WHERE id = ?");
+        $stmt->execute([$medicine_id]);
     
         // Commit transaction
         $conn->commit();
+        echo '<div style="background:lime;color:black;padding:10px;">DEBUG: Transaction committed. Medicine deleted.</div>';
         
         // If we reach here, deletion was successful
         if (!headers_sent()) {
-    header('Location: medicines.php');
-    exit();
+            header('Location: medicines.php');
+            exit();
         }
         
     } catch (PDOException $e) {
         // Rollback on error
         $conn->rollBack();
+        echo '<div style="background:red;color:white;padding:10px;">DEBUG: Transaction rolled back. Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
         $delete_error = "Error deleting medicine: " . $e->getMessage();
         error_log("Failed to delete medicine $medicine_id: " . $e->getMessage());
     }
@@ -328,6 +335,33 @@ $medicines = $conn->query("
             font-size: 1.1rem;
             display: block;
         }
+        .admin-medicine-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  border-left: 6px solid #0b6e6e;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.admin-medicine-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;
+}
+.admin-medicine-title { font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px; }
+.admin-medicine-category {
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 8px;
+  color: #fff;
+  background: #218c74;
+  font-size: 0.98rem;
+  text-transform: capitalize;
+}
+.admin-medicine-info { color: #555; font-size: 0.97rem; margin-bottom: 0.5rem; }
+.admin-medicine-meta { color: #888; font-size: 0.95rem; margin-bottom: 0.5rem; }
+.admin-medicine-actions { margin-top: 1rem; display: flex; gap: 0.5rem; }
     </style>
 </head>
 <body>
@@ -388,26 +422,24 @@ $medicines = $conn->query("
         <div class="row g-4">
             <?php foreach ($medicines as $medicine): ?>
                 <div class="col-md-6 col-lg-4">
-                    <div class="expert-medicine-card p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5 class="mb-0"><?php echo htmlspecialchars($medicine['name']); ?></h5>
-                            <span class="badge bg-info fs-6"><?php echo htmlspecialchars($medicine['category']); ?></span>
+                    <div class="admin-medicine-card">
+                        <div class="admin-medicine-header">
+                            <div class="admin-medicine-title"><?php echo htmlspecialchars($medicine['name']); ?></div>
+                            <span class="admin-medicine-category"><?php echo htmlspecialchars($medicine['category']); ?></span>
                         </div>
-                        <div class="mb-2">
-                            <i class="fas fa-clinic-medical me-2"></i>
-                            <span class="fw-bold"><?php echo htmlspecialchars($medicine['pharmacy_name']); ?></span>
+                        <div class="admin-medicine-info">
+                            <i class="fas fa-clinic-medical me-1"></i>Pharmacy: <b><?php echo htmlspecialchars($medicine['pharmacy_name']); ?></b><br>
+                            <i class="fas fa-dollar-sign me-1"></i>Price: $<?php echo number_format($medicine['price'], 2); ?><br>
+                            <i class="fas fa-box me-1"></i>Stock: <?php echo $medicine['stock_quantity']; ?><br>
+                            <i class="fas fa-calendar-alt me-1"></i>Expiry: <?php echo htmlspecialchars($medicine['expiry_date'] ?? ''); ?>
                         </div>
-                        <div class="mb-2">
-                            <i class="fas fa-dollar-sign me-2"></i>
-                            $<?php echo number_format($medicine['price'], 2); ?>
+                        <div class="admin-medicine-meta">
+                            <i class="fas fa-globe me-1"></i>Origin: <?php echo htmlspecialchars($medicine['country_of_origin'] ?? ''); ?><br>
+                            <i class="fas fa-industry me-1"></i>Manufacturer: <?php echo htmlspecialchars($medicine['manufacturer'] ?? ''); ?>
                         </div>
-                        <div class="mb-2">
-                            <i class="fas fa-box me-2"></i>
-                            Stock: <?php echo $medicine['stock_quantity']; ?>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="admin-medicine-actions">
                             <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewMedicineModal<?php echo $medicine['id']; ?>">
-                                <i class="fas fa-eye me-1"></i>View Details
+                                <i class="fas fa-eye me-1"></i>View
                             </a>
                             <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editMedicineModal<?php echo $medicine['id']; ?>">
                                 <i class="fas fa-edit me-1"></i>Edit
@@ -635,7 +667,7 @@ $medicines = $conn->query("
                     <p><strong>Country of Origin:</strong> <?php echo htmlspecialchars($medicine['country_of_origin']); ?></p>
                     <p><strong>Price:</strong> $<?php echo number_format($medicine['price'], 2); ?></p>
                     <p><strong>Stock Quantity:</strong> <?php echo $medicine['stock_quantity']; ?></p>
-                    <p><strong>Expiry Date:</strong> <?php echo htmlspecialchars($medicine['expiry_date']); ?></p>
+                    <p><strong>Expiry Date:</strong> <?php echo htmlspecialchars($medicine['expiry_date'] ?? ''); ?></p>
                     <p><strong>Status:</strong> <?php echo $medicine['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?></p>
                     <p><strong>Requires Prescription:</strong> <?php echo $medicine['requires_prescription'] ? 'Yes' : 'No'; ?></p>
                     <p><strong>Batch Source Info:</strong> <?php echo htmlspecialchars($medicine['batch_source_info'] ?? ''); ?></p>
@@ -711,9 +743,16 @@ $medicines = $conn->query("
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    document.querySelectorAll('.delete-medicine-form').forEach(form => {
+    console.log('JavaScript loaded. Found ' + document.querySelectorAll('.delete-medicine-form').length + ' delete forms');
+    
+    document.querySelectorAll('.delete-medicine-form').forEach((form, index) => {
+        console.log('Setting up delete form ' + index);
         form.addEventListener('submit', function(e) {
+            console.log('Delete form submitted!');
             e.preventDefault();
+            const _form = this;
+            const medicineId = _form.querySelector('input[name="medicine_id"]').value;
+            console.log('Attempting to delete medicine ID: ' + medicineId);
             
             Swal.fire({
                 title: 'Are you sure?',
@@ -725,8 +764,10 @@ $medicines = $conn->query("
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Submit the form
-                    this.submit();
+                    console.log('User confirmed deletion. Submitting form...');
+                    _form.submit();
+                } else {
+                    console.log('User cancelled deletion');
                 }
             });
         });

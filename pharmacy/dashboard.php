@@ -262,23 +262,23 @@ $total_sales_amount = $conn->query("SELECT COALESCE(SUM(total_amount), 0) FROM o
         <div class="sidebar-header">
             <h4><i class="fas fa-clinic-medical me-2"></i>PharmaWeb</h4>
         </div>
-        <nav>
-            <a href="dashboard.php" class="nav-link active">
+        <nav class="mt-4">
+            <a href="dashboard.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='dashboard.php') echo ' active'; ?>">
                 <i class="fas fa-tachometer-alt me-2"></i> Dashboard
             </a>
-            <a href="medicines.php" class="nav-link">
+            <a href="medicines.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='medicines.php') echo ' active'; ?>">
                 <i class="fas fa-pills me-2"></i> Medicines
             </a>
-            <a href="orders.php" class="nav-link">
+            <a href="orders.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='orders.php') echo ' active'; ?>">
                 <i class="fas fa-shopping-cart me-2"></i> Orders
             </a>
-            <a href="prescriptions.php" class="nav-link">
+            <a href="prescriptions.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='prescriptions.php') echo ' active'; ?>">
                 <i class="fas fa-file-medical me-2"></i> Prescriptions
             </a>
-            <a href="profile.php" class="nav-link">
-                <i class="fas fa-user-cog me-2"></i> Profile
+            <a href="profile.php" class="nav-link<?php if(basename($_SERVER['PHP_SELF'])=='profile.php') echo ' active'; ?>">
+                <i class="fas fa-user me-2"></i> Profile
             </a>
-            <a href="../logout.php" class="nav-link" style="background-color: #0b6e6e; color: white;">
+            <a href="../logout.php" class="nav-link text-danger mt-5">
                 <i class="fas fa-sign-out-alt me-2"></i> Logout
             </a>
         </nav>
