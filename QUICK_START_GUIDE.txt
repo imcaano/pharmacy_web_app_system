@@ -1,0 +1,215 @@
+===========================================
+PHARMACY WEB APP SYSTEM - QUICK START GUIDE
+===========================================
+
+📱 FLUTTER MOBILE APP + 🌐 WEB SYSTEM
+Complete Pharmacy Management System
+
+===========================================
+PREREQUISITES
+===========================================
+
+1. XAMPP (for web system)
+   - Download: https://www.apachefriends.org/
+   - Install and start Apache + MySQL
+
+2. Flutter SDK (for mobile app)
+   - Download: https://flutter.dev/docs/get-started/install
+   - Add to PATH
+   - Run: flutter doctor
+
+3. Android Studio / VS Code (for Flutter development)
+
+===========================================
+STEP 1: SETUP WEB SYSTEM (PHP + MySQL)
+===========================================
+
+1. Start XAMPP:
+   - Open XAMPP Control Panel
+   - Start Apache and MySQL services
+
+2. Setup Database:
+   - Open: http://localhost/phpmyadmin
+   - Create database: pharmacy_db
+   - Import: database/pharmacy_db.sql
+
+3. Configure Database Connection:
+   - Edit: config/database.php
+   - Update hostname, username, password if needed
+
+4. Test Web System:
+   - Open: http://localhost/pharmacy_web_app_system
+   - Should show login page
+
+===========================================
+STEP 2: SETUP FLUTTER MOBILE APP
+===========================================
+
+1. Navigate to Flutter App:
+   cd pharmacy_app
+
+2. Install Dependencies:
+   flutter pub get
+
+3. Run the App:
+   flutter run
+
+   OR for specific platform:
+   flutter run -d chrome    (Web)
+   flutter run -d android   (Android)
+   flutter run -d windows   (Windows)
+
+===========================================
+STEP 3: TEST THE SYSTEM
+===========================================
+
+🌐 WEB SYSTEM TESTING:
+1. Open: http://localhost/pharmacy_web_app_system
+2. Login with existing users or create new ones
+3. Test all roles: Admin, Pharmacy, Customer
+
+📱 FLUTTER APP TESTING:
+1. App starts at login screen
+2. Login with same credentials as web system
+3. Navigate through all pages for each role
+
+===========================================
+DEFAULT USERS (if database is empty)
+===========================================
+
+You can create users through the signup page:
+
+ADMIN:
+- Email: admin@pharmacy.com
+- Password: admin123
+- Type: Admin
+
+PHARMACY:
+- Email: pharmacy@pharmacy.com  
+- Password: pharmacy123
+- Type: Pharmacy
+
+CUSTOMER:
+- Email: customer@pharmacy.com
+- Password: customer123
+- Type: Customer
+
+===========================================
+APP FEATURES BY ROLE
+===========================================
+
+👨‍💼 ADMIN ROLE:
+✅ Dashboard (stats overview)
+✅ Pharmacies Management (CRUD)
+✅ Users Management (CRUD)
+✅ Medicines Management (CRUD)
+✅ Orders Management (view/update)
+✅ Transactions (view all)
+✅ Reports (view/export)
+✅ Profile (edit)
+
+🏥 PHARMACY ROLE:
+✅ Dashboard (pharmacy stats)
+✅ Medicines Management (CRUD)
+✅ Orders Management (view/update)
+✅ Prescriptions (view)
+✅ Profile (edit)
+
+👤 CUSTOMER ROLE:
+✅ Dashboard (customer stats)
+✅ Browse Medicines (view)
+✅ Cart (placeholder)
+✅ Orders (view history)
+✅ Prescriptions (upload/view)
+✅ Profile (edit)
+
+===========================================
+TROUBLESHOOTING
+===========================================
+
+❌ Web System Not Working:
+- Check XAMPP is running
+- Verify database connection in config/database.php
+- Check Apache port (default: 80)
+
+❌ Flutter App Not Working:
+- Run: flutter doctor
+- Check dependencies: flutter pub get
+- Verify API endpoints in lib/services/api_service.dart
+
+❌ Database Connection Issues:
+- Verify MySQL is running in XAMPP
+- Check database name: pharmacy_db
+- Test connection in phpMyAdmin
+
+❌ File Upload Not Working:
+- Check uploads/prescriptions/ folder permissions
+- Verify file size limits in PHP
+
+===========================================
+API ENDPOINTS (for reference)
+===========================================
+
+Base URL: http://localhost/pharmacy_web_app_system/api/
+
+Authentication:
+- POST /login.php
+- POST /signup.php
+
+Users:
+- GET/POST/PUT/DELETE /users.php
+
+Medicines:
+- GET/POST/PUT/DELETE /medicines.php
+
+Orders:
+- GET/POST/PUT/DELETE /orders.php
+
+Prescriptions:
+- GET/POST/PUT/DELETE /prescriptions.php
+
+File Upload:
+- POST /upload_prescription.php
+
+===========================================
+FOLDER STRUCTURE
+===========================================
+
+pharmacy_web_app_system/
+├── admin/              # Admin web pages
+├── pharmacy/           # Pharmacy web pages  
+├── customer/           # Customer web pages
+├── api/               # REST API endpoints
+├── config/            # Database config
+├── database/          # SQL files
+├── uploads/           # File uploads
+└── pharmacy_app/      # Flutter mobile app
+    ├── lib/
+    │   ├── screens/   # App pages
+    │   ├── models/    # Data models
+    │   ├── services/  # API services
+    │   └── widgets/   # Reusable widgets
+
+===========================================
+NEXT STEPS
+===========================================
+
+1. Test all user flows
+2. Add real data to database
+3. Customize UI/UX as needed
+4. Deploy to production server
+5. Add push notifications (optional)
+6. Implement cart functionality
+7. Add payment integration
+
+===========================================
+SUPPORT
+===========================================
+
+For issues:
+1. Check error logs in XAMPP
+2. Verify all prerequisites are installed
+3. Test database connection
+4. Check Flutter doctor output
+
+=========================================== 

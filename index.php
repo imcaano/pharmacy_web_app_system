@@ -16,40 +16,19 @@
         }
         body {
             min-height: 100vh;
-            background: #f6f7fb;
+            background: linear-gradient(135deg, #e0f7fa 0%, #f5fafd 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             position: relative;
             margin: 0;
         }
-        .wave-bg {
-            position: absolute;
-            left: 0; right: 0;
-            width: 100vw;
-            z-index: 0;
-            pointer-events: none;
-        }
-        .wave-top {
-            top: 0;
-            height: 320px;
-        }
-        .wave-bottom {
-            bottom: 0;
-            height: 220px;
-            transform: none;
-        }
-        .navbar {
-            background: transparent;
-            z-index: 2;
-            margin-bottom: 0;
-        }
         .navbar-brand {
             font-weight: 700;
             letter-spacing: 1px;
-            color: #0b6e6e !important;
+            color: #2dbee5 !important;
             font-size: 1.7rem;
         }
         .nav-link {
-            color: #0b6e6e !important;
+            color: #2dbee5 !important;
             font-weight: 500;
             margin-right: 1.2rem;
             display: flex;
@@ -58,14 +37,10 @@
         }
         .nav-link i { margin-right: 0.5rem; }
         .hero-section {
-            position: relative;
-            z-index: 1;
-            min-height: 60vh;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            padding: 0 0 2.5rem 0;
-            margin-bottom: 2.5rem;
+            background: linear-gradient(120deg, #f5fafd 60%, #2dbee5 100%);
+            border-radius: 0 0 3rem 3rem;
+            box-shadow: 0 8px 32px rgba(46,198,242,0.13);
+            padding-bottom: 3rem;
         }
         .hero-content {
             display: flex;
@@ -83,85 +58,54 @@
             margin-top: 0.5rem;
         }
         .hero-visual .icon-bg {
-            background: linear-gradient(135deg, #0b6e6e 0%, #0b6e6e 100%);
+            background: linear-gradient(135deg, #2dbee5 0%, #0b6e6e 100%);
             border-radius: 50%;
             width: 15rem;
             height: 15rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 32px rgba(11, 110, 110, 0.1);
+            box-shadow: 0 8px 32px rgba(46,198,242,0.13);
             animation: float 3s ease-in-out infinite;
         }
         .hero-visual i {
             color: #fff;
             font-size: 6rem;
-            text-shadow: 0 4px 24px rgba(11, 110, 110, 0.15);
+            text-shadow: 0 4px 24px rgba(46,198,242,0.15);
         }
         @keyframes float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-18px); }
         }
-        .hero-text {
-            flex: 2;
-            max-width: 32rem;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .badge-modern {
-            background: #e6f0f0;
-            color: #0b6e6e;
-            font-weight: 600;
-            border-radius: 20px;
-            padding: 0.5rem 1.5rem;
-            font-size: 1.1rem;
-            margin-bottom: 2.8rem;
-            display: inline-block;
-            letter-spacing: 1px;
-        }
         .hero-title {
             font-size: 2.5rem;
             font-weight: 800;
-            color: #22223b;
+            color: #2dbee5;
             margin-bottom: 2.2rem;
             line-height: 1.15;
         }
-        .hero-desc {
-            color: #6c6a7c;
-            font-size: 1.15rem;
-            margin-bottom: 3rem;
-            line-height: 1.7;
-        }
         .cta-btn {
-            background: linear-gradient(90deg, #0b6e6e 0%, #0b6e6e 100%);
+            background: linear-gradient(90deg, #2dbee5 0%, #0b6e6e 100%);
             color: #fff;
-            font-weight: 600;
+            font-weight: 700;
             border: none;
             border-radius: 30px;
-            padding: 0.85rem 2.7rem;
-            font-size: 1.15rem;
-            box-shadow: 0 4px 24px rgba(11, 110, 110, 0.15);
+            padding: 0.95rem 2.7rem;
+            font-size: 1.18rem;
+            box-shadow: 0 4px 24px rgba(46,198,242,0.13);
             transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
             margin-bottom: 3rem;
             text-decoration: none;
         }
         .cta-btn:hover {
-            background: linear-gradient(90deg, #0b6e6e 0%, #0b6e6e 100%);
-            box-shadow: 0 8px 32px rgba(11, 110, 110, 0.25);
+            background: linear-gradient(90deg, #0b6e6e 0%, #2dbee5 100%);
+            box-shadow: 0 8px 32px rgba(46,198,242,0.18);
             transform: translateY(-2px) scale(1.04);
             color: #fff;
         }
-        .feature-icons {
-            margin-top: 3.5rem;
-            margin-bottom: 4.5rem;
-            display: flex;
-            gap: 3.5rem;
-            justify-content: center;
-        }
         .feature-icon {
-            background: #e6f0f0;
-            color: #0b6e6e;
+            background: #e0f7fa;
+            color: #2dbee5;
             border-radius: 50%;
             width: 3.5rem;
             height: 3.5rem;
@@ -173,7 +117,7 @@
             transition: box-shadow 0.2s, transform 0.2s;
         }
         .feature-icon:hover {
-            box-shadow: 0 4px 16px rgba(11, 110, 110, 0.3);
+            box-shadow: 0 4px 16px rgba(46,198,242,0.18);
             transform: scale(1.08);
         }
         .feature-label {
@@ -216,7 +160,7 @@
         .stat-card {
             background: #fff;
             border-radius: 1.2rem;
-            box-shadow: 0 2px 16px rgba(11, 110, 110, 0.1);
+            box-shadow: 0 2px 16px rgba(46,198,242,0.13);
             padding: 2.7rem 3rem;
             text-align: center;
             min-width: 13rem;
@@ -228,7 +172,7 @@
         .stat-value {
             font-size: 2.1rem;
             font-weight: 700;
-            color: #0b6e6e;
+            color: #2dbee5;
             margin-bottom: 0.7rem;
             display: flex;
             align-items: center;
@@ -267,7 +211,7 @@
             transform: translateY(-5px);
         }
         .step-number {
-            background: #0b6e6e;
+            background: #2dbee5;
             color: white;
             width: 2.5rem;
             height: 2.5rem;
@@ -279,7 +223,7 @@
             margin-bottom: 1rem;
         }
         .step-title {
-            color: #0b6e6e;
+            color: #2dbee5;
             font-weight: 600;
             margin-bottom: 0.5rem;
             font-size: 1.2rem;
@@ -290,11 +234,35 @@
             line-height: 1.6;
         }
         .step-icon {
-            color: #0b6e6e;
+            color: #2dbee5;
             font-size: 2rem;
             margin-bottom: 1rem;
         }
-
+        .expert-shape {
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle at 60% 40%, #2dbee5 0%, #f5fafd 100%);
+            border-radius: 50%;
+            opacity: 0.18;
+            z-index: 0;
+        }
+        .expert-shape2 {
+            position: absolute;
+            left: -80px;
+            bottom: -80px;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle at 40% 60%, #2dbee5 0%, #f5fafd 100%);
+            border-radius: 50%;
+            opacity: 0.13;
+            z-index: 0;
+        }
+        footer {
+            background:transparent; color:#2dbee5; font-size:1rem; z-index:2; position:relative; margin-top: 3.5rem;
+        }
         @media (max-width: 992px) {
             .hero-content { flex-direction: column; gap: 2rem; }
             .hero-visual { margin-bottom: 1.5rem; }
@@ -316,13 +284,6 @@
     </style>
 </head>
 <body style="padding-top:0; margin-top:0;">
-    <!-- Top Wave Background -->
-    <div class="wave-bg wave-top" style="z-index:0; top:0;">
-        <svg width="100%" height="320" viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="1440" height="320" fill="#e6f0f0"/>
-            <path d="M0,160 C360,320 1080,0 1440,200 L1440,0 L0,0 Z" fill="#b8dada" fill-opacity="0.6"/>
-        </svg>
-    </div>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light px-4" style="margin-bottom:0;">
         <div class="container-xl">
@@ -341,37 +302,37 @@
         </div>
     </nav>
     <!-- Hero Section -->
-    <section class="hero-section">
+    <section class="hero-section d-flex align-items-center justify-content-center" style="min-height: 80vh;">
         <div class="container-xl">
-            <div class="hero-content row align-items-center">
-                <div class="hero-visual col-lg-5 mb-4 mb-lg-0">
-                    <div class="icon-bg">
-                        <i class="fas fa-prescription-bottle-medical"></i>
+            <div class="row align-items-center justify-content-center">
+                <div class="col-lg-5 mb-4 mb-lg-0 d-flex justify-content-center">
+                    <div class="icon-bg shadow-lg" style="background: linear-gradient(135deg, #2dbee5 0%, #0b6e6e 100%); border-radius: 50%; width: 15rem; height: 15rem; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-prescription-bottle-medical" style="color: #fff; font-size: 6rem;"></i>
                     </div>
                 </div>
-                <div class="hero-text col-lg-7">
-                    <span class="badge-modern"><i class="fas fa-shield-alt me-2"></i>Secure & Modern</span>
-                    <div class="hero-title">Empowering Modern Pharmacies</div>
-                    <div class="hero-desc">
-                        Manage your pharmacy, medicines, and prescriptions with ease. Secure, modern, and built for the future of healthcare. Experience seamless order processing, inventory management, and digital prescriptions—all in one place.
-                    </div>
-                    <a href="signup.php" class="cta-btn mt-2"><i class="fas fa-arrow-right me-2"></i>Get Started</a>
-                    <div class="feature-icons mt-4 mb-4">
-                        <div>
-                            <div class="feature-icon"><i class="fas fa-pills"></i></div>
-                            <div class="feature-label">Medicine Management</div>
-                        </div>
-                        <div>
-                            <div class="feature-icon"><i class="fas fa-file-medical"></i></div>
-                            <div class="feature-label">Digital Prescriptions</div>
-                        </div>
-                        <div>
-                            <div class="feature-icon"><i class="fas fa-wallet"></i></div>
-                            <div class="feature-label">Secure Payments</div>
-                        </div>
-                        <div>
-                            <div class="feature-icon"><i class="fas fa-user-shield"></i></div>
-                            <div class="feature-label">Role-based Access</div>
+                <div class="col-lg-7">
+                    <div class="p-5 bg-white rounded-4 shadow-lg" style="backdrop-filter: blur(6px);">
+                        <span class="badge-modern mb-3" style="background: #e0f7fa; color: #2dbee5; font-weight: 700; border-radius: 20px; padding: 0.5rem 1.5rem; font-size: 1.1rem; letter-spacing: 1px;"><i class="fas fa-shield-alt me-2"></i>Secure & Modern</span>
+                        <div class="hero-title mb-3" style="color: #2dbee5; font-size: 2.5rem; font-weight: 800;">Empowering Modern Pharmacies</div>
+                        <div class="hero-desc mb-4" style="color: #6c6a7c; font-size: 1.15rem; line-height: 1.7;">Manage your pharmacy, medicines, and prescriptions with ease. Secure, modern, and built for the future of healthcare. Experience seamless order processing, inventory management, and digital prescriptions—all in one place.</div>
+                        <a href="signup.php" class="cta-btn mt-2"><i class="fas fa-arrow-right me-2"></i>Get Started</a>
+                        <div class="row mt-4">
+                            <div class="col-6 col-md-3 text-center mb-3">
+                                <div class="feature-icon mx-auto mb-2"><i class="fas fa-pills"></i></div>
+                                <div class="feature-label">Medicine Management</div>
+                            </div>
+                            <div class="col-6 col-md-3 text-center mb-3">
+                                <div class="feature-icon mx-auto mb-2"><i class="fas fa-file-medical"></i></div>
+                                <div class="feature-label">Digital Prescriptions</div>
+                            </div>
+                            <div class="col-6 col-md-3 text-center mb-3">
+                                <div class="feature-icon mx-auto mb-2"><i class="fas fa-wallet"></i></div>
+                                <div class="feature-label">Secure Payments</div>
+                            </div>
+                            <div class="col-6 col-md-3 text-center mb-3">
+                                <div class="feature-icon mx-auto mb-2"><i class="fas fa-user-shield"></i></div>
+                                <div class="feature-label">Role-based Access</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -492,8 +453,8 @@
             <path d="M0,120 C360,220 1080,40 1440,180 L1440,220 L0,220 Z" fill="#b8dada" fill-opacity="0.6"/>
         </svg>
     </div>
-    <footer class="text-center py-4" style="background:transparent; color:#0b6e6e; font-size:1rem; z-index:2; position:relative; margin-top: 3.5rem;">
-        Designed by <i class="fas fa-heart" style="color: #0b6e6e;"></i> PharmaWeb Team
+    <footer class="text-center py-4" style="background:transparent; color:#2dbee5; font-size:1rem; z-index:2; position:relative; margin-top: 3.5rem;">
+        Designed by <i class="fas fa-heart" style="color: #2dbee5;"></i> PharmaWeb Team
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
