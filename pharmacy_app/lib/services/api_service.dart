@@ -365,6 +365,30 @@ class ApiService {
     return data['success'] == true;
   }
 
+  // Accept or reject prescription
+  static Future<Map<String, dynamic>> acceptPrescription(
+    int prescriptionId,
+    String action, {
+    String? notes,
+  }) async {
+    final url = Uri.parse('$baseUrl/prescriptions.php');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'prescription_id': prescriptionId,
+        'action': action,
+        if (notes != null) 'notes': notes,
+      }),
+    );
+    final data = jsonDecode(response.body);
+    if (data['success'] == true) {
+      return data;
+    } else {
+      throw Exception(data['error'] ?? 'Failed to $action prescription');
+    }
+  }
+
   // Pharmacy-specific methods
   static Future<List<Medicine>> fetchMedicinesByPharmacy(int pharmacyId) async {
     final url = Uri.parse('$baseUrl/medicines.php?pharmacy_id=$pharmacyId');

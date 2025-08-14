@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Prescription Acceptance</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .btn { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .result { margin: 10px 0; padding: 10px; background-color: #f8f9fa; border-radius: 3px; }
+        input[type="number"], input[type="text"] { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Prescription Acceptance Functionality</h1>
+    
+    <div class="test-section">
+        <h3>1. Get All Prescriptions</h3>
+        <button class="btn btn-primary" onclick="getPrescriptions()">Get Prescriptions</button>
+        <div id="getResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Accept Prescription</h3>
+        <input type="number" id="acceptId" placeholder="Prescription ID" value="1">
+        <button class="btn btn-success" onclick="acceptPrescription()">Accept Prescription</button>
+        <div id="acceptResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. Reject Prescription</h3>
+        <input type="number" id="rejectId" placeholder="Prescription ID" value="2">
+        <input type="text" id="rejectNotes" placeholder="Rejection reason" value="Test rejection">
+        <button class="btn btn-danger" onclick="rejectPrescription()">Reject Prescription</button>
+        <div id="rejectResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. Test Web Interface</h3>
+        <p>Click the button below to open the pharmacy prescriptions page in a new tab:</p>
+        <button class="btn btn-primary" onclick="openPharmacyPage()">Open Pharmacy Prescriptions Page</button>
+    </div>
+
+    <div class="test-section">
+        <h3>5. Test Results</h3>
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost/pharmacy_web_app_system/api/prescriptions.php';
+
+        async function getPrescriptions() {
+            const resultDiv = document.getElementById('getResult');
+            resultDiv.innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `<strong>Success:</strong> <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+                // Update test results
+                updateTestResults('GET', response.status, data.success);
+            } catch (error) {
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                updateTestResults('GET', 'ERROR', false);
+            }
+        }
+
+        async function acceptPrescription() {
+            const prescriptionId = document.getElementById('acceptId').value;
+            const resultDiv = document.getElementById('acceptResult');
+            resultDiv.innerHTML = 'Processing...';
+            
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prescription_id: parseInt(prescriptionId),
+                        action: 'accept'
+                    })
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `<strong>Result:</strong> <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+                updateTestResults('ACCEPT', response.status, data.success);
+            } catch (error) {
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                updateTestResults('ACCEPT', 'ERROR', false);
+            }
+        }
+
+        async function rejectPrescription() {
+            const prescriptionId = document.getElementById('rejectId').value;
+            const notes = document.getElementById('rejectNotes').value;
+            const resultDiv = document.getElementById('rejectResult');
+            resultDiv.innerHTML = 'Processing...';
+            
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prescription_id: parseInt(prescriptionId),
+                        action: 'reject',
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `<strong>Result:</strong> <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+                updateTestResults('REJECT', response.status, data.success);
+            } catch (error) {
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                updateTestResults('REJECT', 'ERROR', false);
+            }
+        }
+
+        function openPharmacyPage() {
+            window.open('pharmacy/prescriptions.php', '_blank');
+        }
+
+        function updateTestResults(operation, status, success) {
+            const resultsDiv = document.getElementById('testResults');
+            const timestamp = new Date().toLocaleTimeString();
+            const statusColor = success ? 'green' : 'red';
+            const statusText = success ? '✅ PASS' : '❌ FAIL';
+            
+            resultsDiv.innerHTML += `
+                <div style="margin: 5px 0; padding: 5px; border-left: 3px solid ${statusColor};">
+                    <strong>${operation}</strong> - ${statusText} (${status}) - ${timestamp}
+                </div>
+            `;
+        }
+
+        // Auto-run the first test when page loads
+        window.onload = function() {
+            getPrescriptions();
+        };
+    </script>
+</body>
+</html>

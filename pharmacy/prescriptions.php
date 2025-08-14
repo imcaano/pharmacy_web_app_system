@@ -14,6 +14,8 @@ $pharmacy = $conn->query("
     WHERE user_id = " . $_SESSION['user_id']
 )->fetch();
 
+
+
 // Handle prescription verification
 if (isset($_POST['verify_prescription'])) {
     $prescription_id = $_POST['prescription_id'];
@@ -229,6 +231,29 @@ $prescriptions = $conn->query("
                                     <i class="fas fa-file-medical me-1"></i>File
                                 </a>
                             </div>
+                            
+                            <?php if ($prescription['verification_status'] === 'pending'): ?>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <button class="btn btn-success verify-btn" onclick="acceptPrescription(<?php echo $prescription['id']; ?>)">
+                                        <i class="fas fa-check me-1"></i>Accept Prescription
+                                    </button>
+                                    <button class="btn btn-danger" onclick="rejectPrescription(<?php echo $prescription['id']; ?>)">
+                                        <i class="fas fa-times me-1"></i>Reject Prescription
+                                    </button>
+                                </div>
+                            <?php elseif ($prescription['verification_status'] === 'verified'): ?>
+                                <div class="mt-3">
+                                    <span class="badge bg-success fs-6">
+                                        <i class="fas fa-check me-1"></i>Accepted
+                                    </span>
+                                </div>
+                            <?php elseif ($prescription['verification_status'] === 'rejected'): ?>
+                                <div class="mt-3">
+                                    <span class="badge bg-danger fs-6">
+                                        <i class="fas fa-times me-1"></i>Rejected
+                                    </span>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -372,6 +397,63 @@ $prescriptions = $conn->query("
     function verifyHashOnBlockchain(hash) {
         // TODO: Replace with real blockchain verification logic
         alert('Verifying hash on blockchain: ' + hash + '\n\n(Simulated: Hash found and valid!)');
+    }
+    
+    async function acceptPrescription(prescriptionId) {
+        if (confirm('Are you sure you want to accept this prescription?')) {
+            try {
+                const response = await fetch('../api/prescriptions.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prescription_id: prescriptionId,
+                        action: 'accept'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Prescription accepted successfully!');
+                    location.reload(); // Refresh the page to show updated status
+                } else {
+                    alert('Error: ' + (result.error || 'Failed to accept prescription'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    }
+    
+    async function rejectPrescription(prescriptionId) {
+        const notes = prompt('Please provide a reason for rejection (optional):');
+        
+        try {
+            const response = await fetch('../api/prescriptions.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    prescription_id: prescriptionId,
+                    action: 'reject',
+                    notes: notes || 'Prescription rejected by pharmacy'
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('Prescription rejected successfully!');
+                location.reload(); // Refresh the page to show updated status
+            } else {
+                alert('Error: ' + (result.error || 'Failed to reject prescription'));
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
     }
     </script>
 </body>

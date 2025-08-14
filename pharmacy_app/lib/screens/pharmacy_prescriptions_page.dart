@@ -251,6 +251,166 @@ class _PharmacyPrescriptionsPageState extends State<PharmacyPrescriptionsPage> {
     }
   }
 
+  Future<void> _acceptPrescription(Prescription prescription) async {
+    try {
+      // Show confirmation dialog
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Accept Prescription'),
+          content: const Text(
+            'Are you sure you want to accept this prescription? '
+            'This will approve the prescription for processing.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              child: const Text('Accept'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+
+      // Show loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Accepting prescription...'),
+          backgroundColor: Color(0xFF0b6e6e),
+        ),
+      );
+
+      // Call API to accept prescription
+      final response = await ApiService.acceptPrescription(
+        prescription.id,
+        'accept',
+      );
+
+      if (response['success']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Prescription accepted successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Refresh the prescriptions list
+        _fetchPrescriptions();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error: ${response['error'] ?? 'Failed to accept prescription'}',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _rejectPrescription(Prescription prescription) async {
+    try {
+      // Show rejection reason dialog
+      final reason = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Reject Prescription'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Please provide a reason for rejecting this prescription:',
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                decoration: const InputDecoration(
+                  hintText: 'Enter rejection reason...',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+                onChanged: (value) {
+                  // Store the value for later use
+                  Navigator.pop(ctx, value);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () =>
+                  Navigator.pop(ctx, 'Prescription rejected by pharmacy'),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Reject'),
+            ),
+          ],
+        ),
+      );
+
+      if (reason == null) return;
+
+      // Show loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Rejecting prescription...'),
+          backgroundColor: Color(0xFF0b6e6e),
+        ),
+      );
+
+      // Call API to reject prescription
+      final response = await ApiService.acceptPrescription(
+        prescription.id,
+        'reject',
+        notes: reason,
+      );
+
+      if (response['success']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Prescription rejected successfully!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+
+        // Refresh the prescriptions list
+        _fetchPrescriptions();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error: ${response['error'] ?? 'Failed to reject prescription'}',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
@@ -451,6 +611,91 @@ class _PharmacyPrescriptionsPageState extends State<PharmacyPrescriptionsPage> {
                 ),
               ],
             ),
+
+            // Accept/Reject buttons for pending prescriptions
+            if (prescription.status.toLowerCase() == 'pending') ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.check, color: Colors.white),
+                      label: const Text(
+                        'Accept',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: () => _acceptPrescription(prescription),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      label: const Text(
+                        'Reject',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: () => _rejectPrescription(prescription),
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: prescription.status.toLowerCase() == 'verified'
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: prescription.status.toLowerCase() == 'verified'
+                        ? Colors.green
+                        : Colors.red,
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      prescription.status.toLowerCase() == 'verified'
+                          ? Icons.check_circle
+                          : Icons.cancel,
+                      color: prescription.status.toLowerCase() == 'verified'
+                          ? Colors.green
+                          : Colors.red,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      prescription.status.toLowerCase() == 'verified'
+                          ? 'Prescription Accepted'
+                          : 'Prescription Rejected',
+                      style: TextStyle(
+                        color: prescription.status.toLowerCase() == 'verified'
+                            ? Colors.green
+                            : Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
